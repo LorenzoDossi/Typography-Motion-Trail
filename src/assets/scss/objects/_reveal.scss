@@ -1,0 +1,42 @@
+%reveal-from {
+  transform: translateY(var(--space-xl));
+  opacity: 0;
+  transition: $transition-in-view;
+  transition-delay: calc(0.075s * var(--index, 0));
+}
+
+%reveal-to {
+  transform: none;
+  opacity: 1;
+}
+
+.o-reveal,
+.o-reveal-childs > * {
+  @extend %reveal-from;
+}
+
+.o-reveal-childs {
+  $stagger: 0.05s;
+  $limit: 10;
+
+  > *:nth-child(n + #{$limit}) {
+    transition-delay: $limit * $stagger;
+  }
+
+  @for $i from 1 through $limit {
+    > *:nth-child(#{$i + 1}) {
+      transition-delay: $i * $stagger;
+    }
+  }
+}
+
+html.is-ready {
+  .o-reveal.is-inview,
+  .is-inview .o-reveal,
+  .o-reveal-childs.is-inview > *,
+  .is-inview .o-reveal-childs > * {
+    &:not(.prevent-reveal) {
+      @extend %reveal-to;
+    }
+  }
+}

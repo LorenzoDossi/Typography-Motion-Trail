@@ -1,0 +1,11 @@
+@mixin is-mobile() {
+  html.is-mobile & {
+    @content;
+  }
+}
+
+@mixin is-not-mobile() {
+  html:not(.is-mobile) & {
+    @content;
+  }
+}

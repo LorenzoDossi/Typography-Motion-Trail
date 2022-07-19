@@ -1,0 +1,16 @@
+:root {
+  --color-placeholder: rgb(0 0 0 / 5%);
+  --theme-color: var(--color-gray);
+  --body-font-family: #{$font-family-body};
+  --body-font-weight: 300;
+  --heading-font-family: #{$font-family-heading};
+  --actual-vh: 1vh;
+  --initial-vh: 1vh;
+  --space-section: var(--space-3xl-4xl);
+  --space-header: calc(var(--space-section) + var(--site-header-height));
+  --logo-height: var(--space-l-xl);
+  --logo-width: #{calc(var(--logo-height) * $logo-width / $logo-height)};
+  --heading-line-height: 1.25;
+  --site-header-padding: var(--space-l);
+  --site-header-height: calc(var(--logo-height) + var(--site-header-padding) * 2);
+}

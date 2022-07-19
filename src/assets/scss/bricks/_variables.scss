@@ -1,0 +1,112 @@
+// COLORS
+
+$colors: (
+  black: #000,
+  white: #fff
+) !default;
+
+// LAYOUT
+
+// breakpoints
+$breakpoints: (
+  xs: 0,
+  sm: 768px,
+  md: 992px,
+  lg: 1420px,
+  xl: 1960px,
+  xxl: 2400px
+) !default;
+
+// container paddings
+$container-padding: (
+  xs: var(--space-s),
+  sm: var(--space-m)
+) !default;
+
+// grid
+$grid-columns: 12 !default;
+$gutter: (
+  xs: var(--space-s),
+  sm: var(--space-m)
+) !default;
+$gutter-x: $gutter !default;
+$gutter-y: $gutter !default;
+
+// flow
+$flow: var(--space-s) !default;
+
+// spaces and size scale (utopia)
+$fluid-min-width: 320 !default;
+$fluid-min-size: 16 !default;
+$fluid-min-scale: 1.2 !default;
+$fluid-max-width: 1440 !default;
+$fluid-max-size: 24 !default;
+$fluid-max-scale: 1.333 !default;
+$fluid-steps-min: -2 !default;
+$fluid-steps-max: 6 !default;
+$fluid-space-below: (0.75, 0.5, 0.25) !default; // (xs 2xs 3xs ...)
+$fluid-space-above: (1.5, 2, 3, 4, 6) !default; // (m l xl 2xl ..)
+$fluid-space-custom-pairs: (s-l, m-3xl) !default;
+$fluid-verbose: false !default; // if verbose output variables as the original utopia
+
+// VARIOUS
+
+$enable-important-utilities: false !default;
+$font-smoothing: antialiased !default;
+$tap-highlight-color: transparent !default;
+
+$icon-stroke-width: 1.2px !default;
+
+$transition-duration: 0.4s !default;
+$transition-duration-short: 0.15s !default;
+$transition-duration-long: 0.8s !default;
+$transition-in-view: transform $transition-duration-long cubic-bezier('easeOutQuart'), opacity $transition-duration;
+
+// CORE VARIABLES
+
+// build a list with all the steps
+// it will be used in _root
+$fluid-steps: ();
+
+@for $step from $fluid-steps-min through $fluid-steps-max {
+  $fluid-steps: append($fluid-steps, $step);
+}
+
+// build a steps map to be used in the utilities (1: var(--step-1))
+$fluid-steps-vars: ();
+
+@each $step in $fluid-steps {
+  $fluid-steps-vars: map-merge($fluid-steps-vars, ($step: var(--step-#{$step})));
+}
+
+// build a map with all the spaces and their values
+// it will be used in _root
+$fluid-spaces: ();
+
+$fluid-spaces: map-merge($fluid-spaces, map-reverse(map-from-keys-values(('xs','2xs','3xs','4xs','5xs','6xs','7xs','8xs','9xs','10xs'), $fluid-space-below)));
+$fluid-spaces: map-merge($fluid-spaces, ('s': 1));
+$fluid-spaces: map-merge($fluid-spaces, map-from-keys-values(('m','l','xl','2xl','3xl','4xl','5xl','6xl','7xl','8xl', '9xl','10xl'), $fluid-space-above));
+
+// build a space map to be used in the utilities (3xs: var(--space-3xs), s-m: var(--space-s-m))
+$fluid-spaces-vars: ();
+// add base values (3xs, 2xs... 3xl);
+@each $key, $value in $fluid-spaces {
+  $fluid-spaces-vars: map-merge($fluid-spaces-vars, ($key: var(--space-#{$key})));
+}
+// add one-up pairs (s-m, m-l ...)
+@each $key, $value in $fluid-spaces {
+  $next: map-get-next($fluid-spaces, $key, false, key);
+
+  @if $next {
+    $fluid-spaces-vars: map-merge($fluid-spaces-vars, (#{$key}-#{$next}: var(--space-#{$key}-#{$next})));
+  }
+}
+
+// add custom-pairs
+@each $step in $fluid-space-custom-pairs {
+  $fluid-spaces-vars: map-merge($fluid-spaces-vars, ($step: var(--space-#{$step})));
+}
+
+// test $breakpoints values
+@include _assert-ascending($breakpoints, '$breakpoints');
+@include _assert-starts-at-zero($breakpoints, '$breakpoints');

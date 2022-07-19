@@ -1,0 +1,60 @@
+html {
+  // locomotive scroll
+  &.has-scroll-smooth {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    [data-scroll-speed] {
+      will-change: transform;
+    }
+  }
+}
+
+/* stylelint-disable-next-line selector-class-pattern */
+.🎨 {
+  // locomotive scroll and body scroll lock
+  // &:not(.has-scroll-smooth):not(.body-scroll-locked) {
+  //   overflow-y: scroll;
+  //   overscroll-behavior-y: none;
+  // }
+
+  body {
+    overscroll-behavior-y: none;
+
+    // display: flex;
+    // flex-direction: column;
+    // justify-content: flex-start;
+    // align-items: stretch;
+  }
+
+  &:not(.is-ready) body {
+    opacity: 0;
+  }
+}
+
+[data-srcset],
+[data-bgset] {
+  opacity: 0.01;
+  transition: opacity 1s;
+
+  &.lazyloaded {
+    opacity: 1;
+  }
+}
+
+[data-bgset] {
+  background: center/cover no-repeat;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

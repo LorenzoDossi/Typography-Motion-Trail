@@ -1,0 +1,33 @@
+.o-grid {
+  display: grid;
+  grid-template-rows: repeat(var(--rows, 1), 1fr);
+  grid-template-columns: repeat(var(--columns, #{$grid-columns}), 1fr);
+  grid-gap: var(--gutter-y) var(--gutter-x);
+
+  > * {
+    grid-column: auto / span var(--column-span, 1);
+    grid-column-start: var(--column-start, auto);
+  }
+}
+
+@each $breakpoint in map-keys($breakpoints) {
+  $infix: breakpoint-infix($breakpoint, $breakpoints);
+
+  @include media-breakpoint-up($breakpoint, $breakpoints) {
+    @if $grid-columns > 0 {
+      @for $i from 1 through $grid-columns {
+        .o-col#{$infix}-#{$i} {
+          --column-span: #{$i};
+        }
+      }
+
+      // Start with `1` because `0` is and invalid value.
+      // Ends with `$columns - 1` because offsetting by the width of an entire row isn't possible.
+      @for $i from 1 through ($grid-columns - 1) {
+        .o-col-start#{$infix}-#{$i} {
+          --column-start: #{$i};
+        }
+      }
+    }
+  }
+}

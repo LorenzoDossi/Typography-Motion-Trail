@@ -1,0 +1,15 @@
+%flow {
+  > * + * {
+    margin-top: var(--flow);
+  }
+}
+
+.u-flow {
+  --flow: #{$flow};
+
+  @extend %flow;
+}
+
+.u-flow-no-next + * {
+  --flow: 0 !important;
+}

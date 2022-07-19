@@ -1,0 +1,470 @@
+@use 'sass:math';
+@use 'sass:map';
+
+// From Bootstrap
+// Used to evaluate Sass maps like our grid breakpoints.
+@mixin _assert-ascending($map, $map-name) {
+  $prev-key: null;
+  $prev-num: null;
+
+  @each $key, $num in $map {
+    @if $prev-num == null or unit($num) == '%' or unit($prev-num) == '%' {
+      // Do nothing
+    } @else if not comparable($prev-num, $num) {
+      @warn "Potentially invalid value for #{$map-name}: This map must be in ascending order, but key '#{$key}' has value #{$num} whose unit makes it incomparable to #{$prev-num}, the value of the previous key '#{$prev-key}' !";
+    } @else if $prev-num >= $num {
+      @warn "Invalid value for #{$map-name}: This map must be in ascending order, but key '#{$key}' has value #{$num} which isn't greater than #{$prev-num}, the value of the previous key '#{$prev-key}' !";
+    }
+
+    $prev-key: $key; /* stylelint-disable-line order/order */
+    $prev-num: $num;
+  }
+}
+
+// From Bootstrap
+// Starts at zero
+// Used to ensure the min-width of the lowest breakpoint starts at 0.
+@mixin _assert-starts-at-zero($map, $map-name: '$grid-breakpoints') {
+  @if length($map) > 0 {
+    $values: map-values($map);
+    $first-value: nth($values, 1);
+
+    @if $first-value != 0 {
+      @warn 'First breakpoint in #{$map-name} must start at 0, but starts at #{$first-value}.';
+    }
+  }
+}
+
+// From Bootstrap
+// not used
+@function map-loop($map, $func, $args...) {
+  $_map: ();
+
+  @each $key, $value in $map {
+    // allow to pass the $key and $value of the map as an function argument
+    $_args: ();
+
+    @each $arg in $args {
+      $_args: append($_args, if($arg == '$key', $key, if($arg == '$value', $value, $arg)));
+    }
+
+    $_map: map-merge($_map, ($key: call(get-function($func), $_args...))); /* stylelint-disable-line order/order */
+  }
+
+  @return $_map;
+}
+
+// Get next map value
+@function map-get-next($map, $key, $fallback: false, $return: value) {
+  /* stylelint-disable max-nesting-depth */
+  // Check if map is valid
+  @if type-of($map) == map {
+    // Check if key exists in map
+    @if map-has-key($map, $key) {
+      // Init index counter variable
+      $i: 0;
+      // Init key index
+      $key-index: false;
+      // Traverse map for key
+      @each $map-key, $map-value in $map {
+        // Update index
+        $i: $i + 1;
+        // If map key found, set key index
+        @if $map-key == $key {
+          $key-index: $i;
+        }
+        // If next index return next value or key based on $return
+        @if $i == $key-index + 1 {
+          @if $return == key {
+            @return $map-key;
+          } @else {
+            @return $map-value;
+          }
+        }
+        // If last entry return false
+        @if $i == length($map) {
+          @return $fallback;
+        }
+      }
+      // @warn 'No next map item for key #{$key}';
+      @return $fallback;
+    }
+    // @warn 'No valid key #{$key} in map';
+    @return $fallback;
+  }
+  // @warn 'No valid map';
+  @return $fallback;
+  /* stylelint-enable max-nesting-depth */
+}
+
+// Reverse a map
+@function map-reverse($map) {
+  $result: ();
+
+  @if type-of($map) == 'map' {
+    $keys: map-keys($map);
+    $map-reversed: ();
+
+    @for $i from length($keys) through 1 {
+      $map-reversed: map-merge(
+        $map-reversed,
+        (nth($keys, $i): map-get($map, nth($keys, $i)))
+      );
+    }
+
+    @if type-of($map-reversed) == 'map' {
+      $result: $map-reversed;
+    } @else {
+      @warn 'There was an error reversing the order of "#{$map}"';
+    }
+  } @else {
+    // @warn '"#{$map}" is not a valid map';
+  }
+
+  @return $result;
+}
+
+// Create a map from lists of keys and values
+// map lenght will be equal to the shorter list
+@function map-from-keys-values($keys, $values) {
+  $map: ();
+
+  @if type-of($keys) != 'list' {
+    $keys: append((), $keys);
+  }
+
+  @if type-of($values) != 'list' {
+    $values: append((), $values);
+  }
+
+  @if length($keys) > 1 and length($values) > 1 {
+    @for $i from 1 through min(length($keys), length($values)) {
+      $map: map.set($map, nth($keys, $i), nth($values, $i));
+    }
+  }
+
+  @return $map;
+}
+
+// Pixels to Viewport size
+@function px2vw($width, $viewport, $unit: vw) {
+  @return #{100 * math.div($width, $viewport) + $unit};
+}
+
+// Pixels to Viewport to pixel again
+@function px2vw2px($width, $viewport-from, $viewport-to) {
+  @return math.div($width, $viewport-from) * $viewport-to;
+}
+
+// Pixels to rem
+@function px2rem($value, $base: 16px) {
+  @return math.div($value, $base) * 1rem;
+}
+
+// Split string to list
+@function str-split($string, $separator) {
+  $string: $string + ''; // force a string
+  // empty array/list
+  $split-arr: ();
+  // first index of separator in string
+  $index : str-index($string, $separator);
+  // loop through string
+  @while $index != null {
+    // get the substring from the first character to the separator
+    $item: str-slice($string, 1, $index - 1);
+    // push item to array
+    $split-arr: append($split-arr, $item);
+    // remove item and separator from string
+    $string: str-slice($string, $index + 1);
+    // find new index of separator
+    $index : str-index($string, $separator);
+  }
+  // add the remaining string to list (the last item)
+  $split-arr: append($split-arr, $string); /* stylelint-disable-line order/order */
+
+  @return $split-arr;
+}
+
+@function color($name, $map: $colors) {
+  @return map_get($map, $name);
+}
+
+// String replace
+@function str-replace($string, $search, $replace: '') {
+  $index: str-index($string, $search);
+
+  @if $index {
+    @return str-slice($string, 1, $index - 1) + $replace + str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
+  }
+
+  @return $string;
+}
+
+// Get encoded SVG from a list of SVGs and replace inline style
+@function svg($svg-name, $svg-style: '', $encode: true, $svg: $svg) {
+  $svg: map_get($svg, $svg_name);
+  $svg: str-replace($svg, '{$svg-style}', $svg-style);
+
+  @if ($encode == true) {
+    $svg : svg-encode($svg);
+  }
+
+  @return $svg;
+}
+
+// SVG Encode
+@function svg-encode($svg) {
+  @each $char, $encoded in $encoding-reference {
+    $svg: str-replace($svg, $char, $encoded);
+  }
+
+  @return 'data:image/svg+xml,' + $svg;
+}
+
+$encoding-reference: (
+  //('%','%25'),  // Encode "%" first, otherwise the "%" from encoded code would be encoded again (which would be bad)
+  ('<','%3C'),
+  ('>','%3E'),
+  //('"','%22'),  // Replace " with ' because that's shorter than %22 and normally working
+  ('"','\''),
+  ('#','%23'),
+  ('&','%26')
+  // Here are a few more characters you could encode
+  //(' ','%20'),
+  //('!','%21'),
+  //('$','%24'),
+  //(',','%27'),
+  //('(','%28'),
+  //(')','%29'),
+  //('*','%2A'),
+  //('+','%2B'),
+  //('"','%2C'),
+  //('/','%2F'),
+  //(':','%3A'),
+  //(';','%3B'),
+  //('=','%3D'),
+  //('?','%3F'),
+  //('@','%40'),
+  //('[','%5B'),
+  //(']','%5D'),
+  //('^','%5E'),
+  //('`','%60'),
+  //('{','%7B'),
+  //('|','%7C'),
+  //('}','%7D'),
+  //('~','%7E'),
+  //(',','%E2%80%9A'),
+  //('\\','%5C'),
+  //('_','%5F'),
+  //('-','%2D'),
+  //('.','%2E'),
+  // ('\','%5C'),
+  // (' ','%7F'),
+  // ('`','%E2%82%AC'),
+  //('ƒ','%C6%92'),
+  //('„','%E2%80%9E'),
+  //('…','%E2%80%A6'),
+  //('†','%E2%80%A0'),
+  //('‡','%E2%80%A1'),
+  //('ˆ','%CB%86'),
+  //('‰','%E2%80%B0'),
+  //('Š','%C5%A0'),
+  //('‹','%E2%80%B9'),
+  //('Œ','%C5%92'),
+  //('','%C5%8D'),
+  //('Ž','%C5%BD'),
+  //('','%8F'),
+  //('','%C2%90'),
+  //(','%'E2%80%98'),
+  //(','%'E2%80%99'),
+  //('“','%E2%80%9C'),
+  //('”','%E2%80%9D'),
+  //('•','%E2%80%A2'),
+  //('–','%E2%80%93'),
+  //('—','%E2%80%94'),
+  //('˜','%CB%9C'),
+  //('™','%E2%84'),
+  //('š','%C5%A1'),
+  //('›','%E2%80'),
+  //('œ','%C5%93'),
+  //('','%9D'),
+  //('ž','%C5%BE'),
+  //('Ÿ','%C5%B8'),
+  //(' ','%C2%A0'),
+  //('¡','%C2%A1'),
+  //('¢','%C2%A2'),
+  //('£','%C2%A3'),
+  //('¤','%C2%A4'),
+  //('¥','%C2%A5'),
+  //('¦','%C2%A6'),
+  //('§','%C2%A7'),
+  //('¨','%C2%A8'),
+  //('©','%C2%A9'),
+  //('ª','%C2%AA'),
+  //('«','%C2%AB'),
+  //('¬','%C2%AC'),
+  //(','%'C2%AD'),
+  //('®','%C2%AE'),
+  //('¯','%C2%AF'),
+  //('°','%C2%B0'),
+  //('±','%C2%B1'),
+  //('²','%C2%B2'),
+  //('³','%C2%B3'),
+  //('´','%C2%B4'),
+  //('µ','%C2%B5'),
+  //('¶','%C2%B6'),
+  //('·','%C2%B7'),
+  //('¸','%C2%B8'),
+  //('¹','%C2%B9'),
+  //('º','%C2%BA'),
+  //('»','%C2%BB'),
+  //('¼','%C2%BC'),
+  //('½','%C2%BD'),
+  //('¾','%C2%BE'),
+  //('¿','%C2%BF'),
+  //('À','%C3%80'),
+  //('Á','%C3%81'),
+  //('Â','%C3%82'),
+  //('Ã','%C3%83'),
+  //('Ä','%C3%84'),
+  //('Å','%C3%85'),
+  //('Æ','%C3%86'),
+  //('Ç','%C3%87'),
+  //('È','%C3%88'),
+  //('É','%C3%89'),
+  //('Ê','%C3%8A'),
+  //('Ë','%C3%8B'),
+  //('Ì','%C3%8C'),
+  //('Í','%C3%8D'),
+  //('Î','%C3%8E'),
+  //('Ï','%C3%8F'),
+  //('Ð','%C3%90'),
+  //('Ñ','%C3%91'),
+  //('Ò','%C3%92'),
+  //('Ó','%C3%93'),
+  //('Ô','%C3%94'),
+  //('Õ','%C3%95'),
+  //('Ö','%C3%96'),
+  //('×','%C3%97'),
+  //('Ø','%C3%98'),
+  //('Ù','%C3%99'),
+  //('Ú','%C3%9A'),
+  //('Û','%C3%9B'),
+  //('Ü','%C3%9C'),
+  //('Ý','%C3%9D'),
+  //('Þ','%C3%9E'),
+  //('ß','%C3%9F'),
+  //('à','%C3%A0'),
+  //('á','%C3%A1'),
+  //('â','%C3%A2'),
+  //('ã','%C3%A3'),
+  //('ä','%C3%A4'),
+  //('å','%C3%A5'),
+  //('æ','%C3%A6'),
+  //('ç','%C3%A7'),
+  //('è','%C3%A8'),
+  //('é','%C3%A9'),
+  //('ê','%C3%AA'),
+  //('ë','%C3%AB'),
+  //('ì','%C3%AC'),
+  //('í','%C3%AD'),
+  //('î','%C3%AE'),
+  //('ï','%C3%AF'),
+  //('ð','%C3%B0'),
+  //('ñ','%C3%B1'),
+  //('ò','%C3%B2'),
+  //('ó','%C3%B3'),
+  //('ô','%C3%B4'),
+  //('õ','%C3%B5'),
+  //('ö','%C3%B6'),
+  //('÷','%C3%B7'),
+  //('ø','%C3%B8'),
+  //('ù','%C3%B9'),
+  //('ú','%C3%BA'),
+  //('û','%C3%BB'),
+  //('ü','%C3%BC'),
+  //('ý','%C3%BD'),
+  //('þ','%C3%BE'),
+  //('ÿ','%C3%BF')
+);
+
+// -----------------------------------------------------------------------------
+// sassy-cubic-bezier
+// -----------------------------------------------------------------------------
+////
+/// @author Daniel Guillan
+////
+// Table of contents:
+// 1. Default easing functions
+// 2. cubic-bezier function
+
+// -----------------------------------------------------------------------------
+// 1. Default easing functions
+// -----------------------------------------------------------------------------
+/// Default cubic bezier functions
+/// @type Map
+/// @author Robert Penner
+
+$cubic-bezier-functions: (
+  'linear'         : (0.250, 0.250, 0.750, 0.750),
+  'ease'           : (0.250, 0.100, 0.250, 1.000),
+  'ease-in'        : (0.420, 0.000, 1.000, 1.000),
+  'ease-out'       : (0.000, 0.000, 0.580, 1.000),
+  'ease-in-out'    : (0.420, 0.000, 0.580, 1.000),
+
+  'easeInQuad'     : (0.550, 0.085, 0.680, 0.530),
+  'easeInCubic'    : (0.550, 0.055, 0.675, 0.190),
+  'easeInQuart'    : (0.895, 0.030, 0.685, 0.220),
+  'easeInQuint'    : (0.755, 0.050, 0.855, 0.060),
+  'easeInSine'     : (0.470, 0.000, 0.745, 0.715),
+  'easeInExpo'     : (0.950, 0.050, 0.795, 0.035),
+  'easeInCirc'     : (0.600, 0.040, 0.980, 0.335),
+  'easeInBack'     : (0.600, -0.280, 0.735, 0.045),
+
+  'easeOutQuad'    : (0.250, 0.460, 0.450, 0.940),
+  'easeOutCubic'   : (0.215, 0.610, 0.355, 1.000),
+  'easeOutQuart'   : (0.165, 0.840, 0.440, 1.000),
+  'easeOutQuint'   : (0.230, 1.000, 0.320, 1.000),
+  'easeOutSine'    : (0.390, 0.575, 0.565, 1.000),
+  'easeOutExpo'    : (0.190, 1.000, 0.220, 1.000),
+  'easeOutCirc'    : (0.075, 0.820, 0.165, 1.000),
+  'easeOutBack'    : (0.175, 0.885, 0.320, 1.275),
+
+  'easeInOutQuad'  : (0.455, 0.030, 0.515, 0.955),
+  'easeInOutCubic' : (0.645, 0.045, 0.355, 1.000),
+  'easeInOutQuart' : (0.770, 0.000, 0.175, 1.000),
+  'easeInOutQuint' : (0.860, 0.000, 0.070, 1.000),
+  'easeInOutSine'  : (0.445, 0.050, 0.550, 0.950),
+  'easeInOutExpo'  : (1.000, 0.000, 0.000, 1.000),
+  'easeInOutCirc'  : (0.785, 0.135, 0.150, 0.860),
+  'easeInOutBack'  : (0.680, -0.550, 0.265, 1.550),
+) !default;
+
+// -----------------------------------------------------------------------------
+// 2. cubic-bezier function
+// -----------------------------------------------------------------------------
+/// Retrieve a cubic-bezier function by name or return the custom value.
+/// @param {Arglist} $value - List of values or cubic-bezier function name
+/// @return {Map} cubic-bezier function values
+/// @example scss - Cubic Bezier function
+///   cubic-bezier('easeInOutBack')
+///   // cubic-bezier(0.680, -0.550, 0.265, 1.550)
+
+@function cubic-bezier($value...) {
+  @if length($value) == 1 and type-of(nth($value, 1)) == 'string' {
+
+    // Store the function name passed in `$value...`
+    $cubic-bezier-function-name: nth($value, 1);
+
+    // Get the values for the passed function name
+    $value: map-get($cubic-bezier-functions, $cubic-bezier-function-name);
+
+    // Throw an error if function name is not defined in the
+    // `$cubic-bezier-functions` lists
+    @if not map-has-key($cubic-bezier-functions, $cubic-bezier-function-name) {
+      @error '[cubic-bezier]: `#{$cubic-bezier-function-name}` is not a valid cubic-bezier function name';
+    }
+  }
+
+  @return unquote('cubic-bezier(#{$value})');
+}

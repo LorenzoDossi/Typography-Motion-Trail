@@ -1,0 +1,78 @@
+// COLORS
+$colors: (
+  black: #000,
+  white: #fff,
+  gray: #eaeced
+);
+
+// font family
+$font-family-body: 'TWKLausanne', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica', 'Arial', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+$font-family-heading: 'Sohne', serif;
+
+/*
+https://utopia.basilico.dev/type/calculator?c=320,16,1.202,2560,22,1.27,10,2,1440&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l
+*/
+
+$fluid-min-width: 320;
+$fluid-min-size: 16;
+$fluid-min-scale: 1.202;
+$fluid-max-width: 2560;
+$fluid-max-size: 22;
+$fluid-max-scale: 1.27;
+$fluid-steps-min: -2;
+$fluid-steps-max: 10;
+$fluid-space-below: (0.75, 0.5, 0.25);
+$fluid-space-above: (1.5, 2, 3, 4, 6, 8);
+$fluid-space-custom-pairs: (s-xl);
+
+// logo
+$logo-width: 164;
+$logo-height: 40;
+
+// breakpoints
+$breakpoints: (
+  xs: 0,
+  sm: 768px,
+  md: 1024px,
+  lg: 1440px,
+  xl: 1960px,
+  xxl: 2400px
+);
+
+// container paddings
+$container-padding: (
+  xs: var(--space-s-xl),
+  sm: var(--space-s-xl),
+  lg: calc((100vw - 1440px) / 8 + var(--space-s-xl))
+);
+
+// grid
+$gutter: (
+  xs: var(--space-s-xl),
+  sm: var(--space-s-xl)
+);
+
+// z-index
+$zindex-site-header: 100;
+$zindex-scrollbar: 200;
+$zindex-pointer: 250;
+$zindex-overlay: 300;
+
+// $zindex-scrollbar: 2;
+// $zindex-overlay: 2;
+
+// $extra_utilities: (
+//   'color': (
+//     property: color,
+//     values: (
+//       blue: var(--blue),
+//       orange: var(--orange),
+//       gray-warm: var(--gray-warm),
+//       white: #fff,
+//     )
+//   )
+// );
+
+// $svg: (
+//   'arrow-long' : '<svg xmlns="http://www.w3.org/2000/svg" width="27px" height="17px" viewBox="0 0 27 17" style="{$svg-style}"><polyline points="20.6,3 26.1,8.5 20.6,14"/><polyline points="26.1,8.5 0,8.5 26.1,8.5"/></svg>'
+// );

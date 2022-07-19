@@ -1,0 +1,13 @@
+:root {
+  // utopia
+  @include utopia-render-scale();
+  @include utopia-render-space();
+  // layout
+  @include breakpoint-property(--container-padding, $container-padding);
+  @include breakpoint-property(--gutter-x, $gutter-x);
+  @include breakpoint-property(--gutter-y, $gutter-y);
+  // colors
+  @each $key, $value in $colors {
+    #{'--color-'+$key}: $value;
+  }
+}

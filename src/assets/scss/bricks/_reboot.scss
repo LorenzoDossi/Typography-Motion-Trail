@@ -1,0 +1,84 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  @include font-smoothing($font-smoothing);
+
+  color: var(--body-color, #000);
+  font-family: var(--body-font-family);
+  font-size: var(--body-font-size, var(--step-0));
+  font-weight: var(--body-font-weight, 400);
+  line-height: var(--body-line-height, 1.5);
+  background-color: var(--body-bg, #fff);
+  -webkit-text-size-adjust: 100%; /* stylelint-disable-line property-no-vendor-prefix */
+  -webkit-tap-highlight-color: $tap-highlight-color;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+
+input,
+button,
+select,
+optgroup,
+textarea {
+  color: var(--body-color);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+// Remove the inheritance of text transform in Firefox
+button,
+select {
+  text-transform: none;
+}
+
+button,
+[role='button'] {
+  cursor: pointer;
+}
+
+select {
+  // Remove the inheritance of word-wrap in Safari.
+  // See https://github.com/twbs/bootstrap/issues/24990
+  word-wrap: normal;
+
+  // Undo the opacity change from Chrome
+  &:disabled {
+    opacity: 1;
+  }
+}
+
+textarea {
+  resize: vertical;
+}
+
+fieldset {
+  min-width: 0;
+  border: 0;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+
+a[href^='tel:'] {
+  text-decoration: none !important;
+}
+
+svg {
+  overflow: visible;
+}

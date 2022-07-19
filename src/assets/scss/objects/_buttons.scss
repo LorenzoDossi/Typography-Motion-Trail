@@ -1,0 +1,30 @@
+.o-button {
+  display: inline-flex;
+  padding: 0.5em 1.5em;
+  color: inherit;
+  font-size: var(--step--1);
+  font-weight: 400;
+  line-height: 1;
+  text-decoration: none !important;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid currentcolor;
+  border-radius: 100px;
+  appearance: none;
+  transition: color, background-color, border-color;
+  transition-duration: $transition-duration-short;
+
+  &:hover {
+    color: #fff;
+    background: #000;
+    border: 1px solid #000;
+  }
+}
+
+.o-button--white {
+  &:hover {
+    color: #000;
+    background: #fff;
+    border: 1px solid #fff;
+  }
+}

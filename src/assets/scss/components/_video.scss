@@ -1,0 +1,30 @@
+.c-video {
+  video {
+    display: block;
+    width: 300px;
+    height: 300px;
+    // background: black;
+  }
+
+  ul {
+    // list-style: none;
+  }
+}
+
+.c-video__left-div {
+  width: 300px;
+  height: 300px;
+  position: absolute;
+  display: block;
+  left: 0;
+  top: 0;
+}
+
+.c-video__right-div {
+  width: 300px;
+  height: 300px;
+  position: absolute;
+  display: block;
+  left: 0;
+  top: 0;
+}

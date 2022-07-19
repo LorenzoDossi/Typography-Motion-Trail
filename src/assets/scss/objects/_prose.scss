@@ -1,0 +1,19 @@
+.o-prose {
+  --flow: 1em;
+
+  @extend %flow;
+
+  ol, ul {
+    @extend %flow;
+
+    padding-left: 1.1em;
+  }
+
+  a:not([class]) {
+    color: inherit;
+  }
+
+  .o-label + * {
+    --flow: 0;
+  }
+}

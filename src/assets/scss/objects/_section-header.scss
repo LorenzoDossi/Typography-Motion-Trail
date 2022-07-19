@@ -1,0 +1,35 @@
+.o-section-header {
+  padding-top: var(--space-l);
+  padding-bottom: var(--space-2xl);
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.o-section-header__title-wrapper {
+  --column-span: 5;
+  --column-start: 5;
+
+  @include media-breakpoint-down(sm) {
+    --column-span: 10;
+    --column-start: 3;
+
+    text-align: right;
+  }
+}
+
+.o-section-header__cta {
+  --column-span: 3;
+
+  text-align: right;
+
+  @include media-breakpoint-down(sm) {
+    display: none;
+  }
+}

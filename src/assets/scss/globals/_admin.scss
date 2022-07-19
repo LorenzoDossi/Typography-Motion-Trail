@@ -1,0 +1,13 @@
+html.cke_panel_container {
+  body {
+    color: #000;
+  }
+
+  a:hover {
+    text-decoration: none;
+  }
+}
+
+body.cke_editable {
+  margin: var(--step-0);
+}

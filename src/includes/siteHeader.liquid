@@ -1,0 +1,10 @@
+<header class="site-header">
+  <ul>
+    {% for el in collections.page %}
+      <li>
+        <a href="{{el.url}}">{{ el.data.title }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+</header>
+<hr>

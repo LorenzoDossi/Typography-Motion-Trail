@@ -1,0 +1,17 @@
+.o-caption * {
+  line-height: 1.15 !important;
+}
+
+.o-caption__label {
+  text-transform: uppercase;
+}
+
+.o-caption__title {
+  font-size: var(--step-0);
+  font-style: italic;
+  font-weight: var(--body-font-weight);
+}
+
+.o-caption__description {
+  opacity: 0.3;
+}

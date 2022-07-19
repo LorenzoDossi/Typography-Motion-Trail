@@ -1,0 +1,104 @@
+$form-flow: var(--space-m) !default;
+
+$form-active-color: #0d6efd !default;
+
+// label
+$form-label-margin-bottom: 0.5em !default;
+$form-label-color: null !default;
+$form-label-font-size: null !default;
+$form-label-font-style: null !default;
+$form-label-font-weight: null !default;
+
+// input fields
+$form-inputfield-margin-bottom: var(--space-s) !default;
+
+// input
+$form-input-padding-y: 0.5em !default;
+$form-input-padding-x: 0.5em !default;
+$form-input-font-family: null !default;
+$form-input-font-size: null !default;
+$form-input-font-style: null !default;
+$form-input-font-weight: null !default;
+$form-input-line-height: null !default;
+$form-input-color: null !default;
+$form-input-placeholder-color: null !default;
+$form-input-background-color: null !default;
+$form-input-border-width: 1px !default;
+$form-input-border-color: currentColor !default;
+$form-input-border-radius: 4px !default;
+$form-input-box-shadow: null !default;
+$form-input-transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !default;
+$form-input-focus-color: null !default;
+$form-input-focus-bg: null !default;
+$form-input-focus-border-color: null !default;
+$form-input-focus-box-shadow: 0 0 0 4px rgba($form-active-color, 0.2) !default;
+
+// select
+$form-select-padding-y: $form-input-padding-y !default;
+$form-select-padding-x: $form-input-padding-x !default;
+$form-select-indicator-padding: $form-select-padding-x * 3 !default;
+$form-select-font-family: $form-input-font-family !default;
+$form-select-font-size: $form-input-font-size !default;
+$form-select-font-weight: $form-input-font-weight !default;
+$form-select-line-height: $form-input-line-height !default;
+$form-select-color: $form-input-color !default;
+$form-select-background-color: $form-input-background-color !default;
+$form-select-indicator-color: #000 !default;
+$form-select-indicator-image: url(svg-encode("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='none' stroke='#{$form-select-indicator-color}' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/></svg>")) !default;
+$form-select-indicator-position:  right $form-select-padding-x center !default;
+$form-select-indicator-size: 16px 12px !default;
+$form-select-border-width: $form-input-border-width !default;
+$form-select-border-color: $form-input-border-color !default;
+$form-select-border-radius: $form-input-border-radius !default;
+$form-select-box-shadow: $form-input-box-shadow !default;
+$form-select-transition: $form-input-transition !default;
+$form-select-focus-color: $form-input-focus-color !default;
+$form-select-focus-bg: $form-input-focus-bg !default;
+$form-select-focus-border-color: $form-input-focus-border-color !default;
+$form-select-focus-box-shadow: $form-input-focus-box-shadow !default;
+// checkbox
+$form-check-font-size: 1rem !default;
+$form-check-line-height: 1.5 !default;
+$form-check-input-width: 1em !default;
+$form-check-min-height: $form-check-font-size * $form-check-line-height !default;
+$form-check-padding-start: $form-check-input-width + 0.5em !default;
+$form-check-margin-bottom: 0.125em !default;
+$form-check-label-color: null !default;
+$form-check-label-cursor: null !default;
+$form-check-transition: null !default;
+
+$form-check-input-background-color: $form-input-background-color !default;
+$form-check-input-border: 1px solid rgba(#000, 0.25) !default;
+$form-check-input-border-radius: 0.25em !default;
+$form-check-radio-border-radius: 50% !default;
+$form-check-input-focus-border: $form-input-focus-border-color !default;
+$form-check-input-focus-box-shadow: $form-input-focus-box-shadow !default;
+$form-check-input-border-radius: 0.25em !default;
+$form-check-radio-border-radius: 50% !default;
+
+$form-check-input-checked-color: #fff !default;
+$form-check-input-checked-bg-color: $form-active-color !default;
+$form-check-input-checked-border-color: $form-check-input-checked-bg-color !default;
+$form-check-input-checked-bg-image: url(svg-encode("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='none' stroke='#{$form-check-input-checked-color}' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/></svg>")) !default;
+$form-check-radio-checked-bg-image: url(svg-encode("<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='2' fill='#{$form-check-input-checked-color}'/></svg>")) !default;
+
+// errors
+$form-input-error-color: #f00 !default;
+$form-input-error-font-size: 0.75em !default;
+$form-input-error-margin-top: 0.5em !default;
+
+// alert
+$form-alert-padding: var(--space-s) !default;
+$form-alert-margin: var(--space-s) !default;
+$form-alert-error-background: $form-input-error-color !default;
+$form-alert-error-color: #fff !default;
+$form-alert-success-background: #008000 !default;
+$form-alert-success-color: #fff !default;
+
+// required indicator
+$form-required-indicator-content: '*' !default;
+$form-required-indicator-color: currentColor !default;
+$form-required-indicator-font-size: null !default;
+$form-required-indicator-font-weight: null !default;
+$form-required-indicator-font-family: null !default;
+$form-required-indicator-margin-right: 0.25em !default;

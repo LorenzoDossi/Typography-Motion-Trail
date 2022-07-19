@@ -1,0 +1,112 @@
+@use 'sass:math';
+@use 'sass:map';
+
+@mixin utopia-render-scale() {
+  --fluid-screen: 100vw;
+
+  @if $fluid-verbose {
+    --fluid-min-width: #{$fluid-min-width};
+    --fluid-max-width: #{$fluid-max-width};
+    --fluid-bp: calc((var(--fluid-screen) - var(--fluid-min-width) / 16 * 1rem) / (var(--fluid-max-width) - var(--fluid-min-width)));
+  } @else {
+    --fluid-bp: calc((var(--fluid-screen) - #{math.div($fluid-min-width, 16)}rem) / #{$fluid-max-width - $fluid-min-width});
+  }
+
+  @each $step, $value in $fluid-steps {
+    @if $fluid-verbose {
+      --f-#{$step}-min: #{math.div(math.round($fluid-min-size * math.pow($fluid-min-scale, $step) * 100), 100)};
+      --f-#{$step}-max: #{math.div(math.round($fluid-max-size * math.pow($fluid-max-scale, $step) * 100), 100)};
+      --step-#{$step}: calc(((var(--f-#{$step}-min) / 16) * 1rem) + (var(--f-#{$step}-max) - var(--f-#{$step}-min)) * var(--fluid-bp));
+    } @else {
+      $min: math.div(math.round($fluid-min-size * math.pow($fluid-min-scale, $step) * 100), 100);
+      $max: math.div(math.round($fluid-max-size * math.pow($fluid-max-scale, $step) * 100), 100);
+
+      --step-#{$step}: calc(#{math.div($min, 16)}rem + #{$max - $min} * var(--fluid-bp));
+    }
+  }
+
+  @media screen and (min-width: #{$fluid-max-width}px) {
+    @if $fluid-verbose {
+      --fluid-screen: calc(var(--fluid-max-width) * 1px);
+    } @else {
+      --fluid-screen: #{$fluid-max-width}px;
+    }
+  }
+}
+
+@mixin utopia-render-space() {
+  @if $fluid-verbose {
+    // base values
+    @each $size, $value in $fluid-spaces {
+      @if ($size == 's') {
+        --fc-s-min: (var(--f-0-min));
+        --fc-s-max: (var(--f-0-max));
+      } @else {
+        --fc-#{$size}-min: (var(--fc-s-min) * #{$value});
+        --fc-#{$size}-max: (var(--fc-s-max) * #{$value});
+      }
+    }
+    // T-shirt sizes
+    @each $size, $value in $fluid-spaces {
+      --space-#{$size}: calc(((var(--fc-#{$size}-min) / 16) * 1rem) + (var(--fc-#{$size}-max) - var(--fc-#{$size}-min)) * var(--fluid-bp));
+    }
+    // One-up pairs
+    @if length($fluid-spaces) > 1 {
+      @each $size, $value in $fluid-spaces {
+        $next: map-get-next($fluid-spaces, $size, false, key);
+
+        @if $next {
+          --space-#{$size}-#{$next}: calc(((var(--fc-#{$size}-min) / 16) * 1rem) + (var(--fc-#{$next}-max) - var(--fc-#{$size}-min)) * var(--fluid-bp));
+        }
+      }
+    }
+    // Custom pairs
+    @each $pairs in $fluid-space-custom-pairs {
+      $pairs: str-split($pairs, '-');
+      $from: nth($pairs, 1);
+      $to: nth($pairs, 2);
+
+      --space-#{$from}-#{$to}: calc(((var(--fc-#{$from}-min) / 16) * 1rem) + (var(--fc-#{$to}-max) - var(--fc-#{$from}-min)) * var(--fluid-bp));
+    }
+  } @else {
+    $map-values: ();
+
+    @each $size, $value in $fluid-spaces {
+      $map-values : map.set($map-values, $size, ($fluid-min-size * $value, $fluid-max-size * $value));
+    }
+    // T-shirt sizes
+    @each $size, $value in $map-values {
+      $min : nth($value, 1);
+      $max : nth($value, 2);
+
+      --space-#{$size}: calc(#{math.div($min, 16)}rem + #{$max - $min} * var(--fluid-bp));
+    }
+    // One-up pairs
+    @if length($fluid-spaces) > 1 {
+      @each $size, $value in $map-values {
+        $next: map-get-next($map-values, $size, false, key);
+
+        @if $next {
+          $nextValue: map-get($map-values, $next);
+          $min: nth($value, 1);
+          // $max : nth($value, 2);
+          // $nextMin: nth($nextValue, 1);
+          $nextMax: nth($nextValue, 2);
+
+          --space-#{$size}-#{$next}: calc(#{math.div($min, 16)}rem + #{$nextMax - $min} * var(--fluid-bp));
+        }
+      }
+    }
+    // Custom pairs
+    @each $pairs in $fluid-space-custom-pairs {
+      $pairs: str-split($pairs, '-');
+      $from: nth($pairs, 1);
+      $to: nth($pairs, 2);
+
+      $fromMin: nth(map-get($map-values, $from), 1);
+      $toMax: nth(map-get($map-values, $to), 2);
+
+      --space-#{$from}-#{$to}: calc(#{math.div($fromMin, 16)}rem + #{$toMax - $fromMin} * var(--fluid-bp));
+    }
+  }
+}

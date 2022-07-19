@@ -1,0 +1,93 @@
+$utilities: (
+  'font-size': (
+    property: font-size,
+    class: fs,
+    values: $fluid-steps-vars
+  ),
+  'flow': (
+    property: flow,
+    css-var: true,
+    values: map-merge($fluid-spaces-vars, (0: 0))
+  ),
+  'display': (
+    responsive: true,
+    print: true,
+    property: display,
+    class: d,
+    values: inline inline-block block grid flex inline-flex none
+  ),
+  'margin': (
+    property: margin,
+    class: m,
+    values: map-merge($fluid-spaces-vars, (auto: auto))
+  ),
+  'margin-x': (
+    property: margin-left margin-right,
+    class: mx,
+    values: map-merge($fluid-spaces-vars, (auto: auto))
+  ),
+  'margin-y': (
+    property: margin-top margin-bottom,
+    class: my,
+    values: map-merge($fluid-spaces-vars, (auto: auto))
+  ),
+  'margin-top': (
+    property: margin-top,
+    class: mt,
+    values: map-merge($fluid-spaces-vars, (auto: auto))
+  ),
+  'margin-left': (
+    property: margin-left,
+    class: ml,
+    values: map-merge($fluid-spaces-vars, (auto: auto))
+  ),
+  'margin-right': (
+    property: margin-right,
+    class: mr,
+    values: map-merge($fluid-spaces-vars, (auto: auto))
+  ),
+  'margin-bottom': (
+    property: margin-bottom,
+    class: mb,
+    values: map-merge($fluid-spaces-vars, (auto: auto))
+  ),
+  'padding': (
+    property: padding,
+    class: p,
+    values: $fluid-spaces-vars
+  ),
+  'padding-x': (
+    property: padding-left padding-right,
+    class: px,
+    values: $fluid-spaces-vars
+  ),
+  'padding-y': (
+    property: padding-top padding-bottom,
+    class: py,
+    values: $fluid-spaces-vars
+  ),
+  'padding-top': (
+    property: padding-top,
+    class: pt,
+    values: $fluid-spaces-vars
+  ),
+  'padding-left': (
+    property: padding-left,
+    class: pl,
+    values: $fluid-spaces-vars
+  ),
+  'padding-right': (
+    property: padding-right,
+    class: pr,
+    values: $fluid-spaces-vars
+  ),
+  'padding-bottom': (
+    property: padding-bottom,
+    class: pb,
+    values: $fluid-spaces-vars
+  )
+) !default;
+
+$extra_utilities: () !default;
+
+$utilities: map-merge($utilities, $extra_utilities);
