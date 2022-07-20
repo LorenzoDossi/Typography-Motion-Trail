@@ -2,6 +2,1667 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/assets/js/ball.js":
+/*!*******************************!*\
+  !*** ./src/assets/js/ball.js ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var bidello__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bidello */ "./node_modules/bidello/index.js");
+/* harmony import */ var _camera__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./camera */ "./src/assets/js/camera.js");
+/* harmony import */ var _utils_trail__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils/trail */ "./src/assets/js/utils/trail.js");
+
+
+
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (class extends (0,bidello__WEBPACK_IMPORTED_MODULE_0__.component)(three__WEBPACK_IMPORTED_MODULE_3__.Object3D) {
+  init() {
+    this.geometry = new three__WEBPACK_IMPORTED_MODULE_3__.PlaneBufferGeometry(1, 1, 1, 1);
+    this.material = new three__WEBPACK_IMPORTED_MODULE_3__.ShaderMaterial({
+      uniforms: {
+        uTrail: {
+          value: _utils_trail__WEBPACK_IMPORTED_MODULE_2__["default"].fbo.target
+        }
+      },
+      vertexShader: `
+        precision highp float;
+
+        varying vec2 vUv;
+
+        void main() {
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+
+          vUv = uv;
+        }
+      `,
+      fragmentShader: `
+       precision highp float;
+
+       uniform sampler2D uTrail;
+
+       varying vec2 vUv;
+
+       void main() {
+
+        vec3 color = texture2D(uTrail, vUv).rgb;
+        gl_FragColor = vec4(color, 1.);
+       }
+      `
+    });
+    this.mesh = new three__WEBPACK_IMPORTED_MODULE_3__.Mesh(this.geometry, this.material);
+    this.add(this.mesh);
+  }
+
+  onResize() {
+    this.longerSide = _camera__WEBPACK_IMPORTED_MODULE_1__["default"].unit.width > _camera__WEBPACK_IMPORTED_MODULE_1__["default"].unit.height ? _camera__WEBPACK_IMPORTED_MODULE_1__["default"].unit.width : _camera__WEBPACK_IMPORTED_MODULE_1__["default"].unit.height;
+    this.mesh.scale.set(this.longerSide, this.longerSide, 1);
+  }
+
+});
+
+/***/ }),
+
+/***/ "./src/assets/js/bidello/index.js":
+/*!****************************************!*\
+  !*** ./src/assets/js/bidello/index.js ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "viewport": () => (/* reexport safe */ _viewport__WEBPACK_IMPORTED_MODULE_0__.viewport),
+/* harmony export */   "raf": () => (/* reexport safe */ _raf__WEBPACK_IMPORTED_MODULE_1__.raf),
+/* harmony export */   "pointer": () => (/* reexport safe */ _pointer__WEBPACK_IMPORTED_MODULE_2__.pointer)
+/* harmony export */ });
+/* harmony import */ var _viewport__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./viewport */ "./src/assets/js/bidello/viewport.js");
+/* harmony import */ var _raf__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./raf */ "./src/assets/js/bidello/raf.js");
+/* harmony import */ var _pointer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./pointer */ "./src/assets/js/bidello/pointer.js");
+
+
+
+
+/***/ }),
+
+/***/ "./src/assets/js/bidello/pointer.js":
+/*!******************************************!*\
+  !*** ./src/assets/js/bidello/pointer.js ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "pointer": () => (/* binding */ pointer)
+/* harmony export */ });
+/* harmony import */ var bidello__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bidello */ "./node_modules/bidello/index.js");
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var math_toolbox__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! math-toolbox */ "./node_modules/math-toolbox/dist/math-toolbox.es.js");
+/* harmony import */ var _camera__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../camera */ "./src/assets/js/camera.js");
+/* harmony import */ var _viewport__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./viewport */ "./src/assets/js/bidello/viewport.js");
+
+
+
+
+
+
+class Pointer {
+  constructor() {
+    this.x = 0;
+    this.y = 0;
+    this.isTouching = true;
+    this.distance = 0;
+    this.hold = new three__WEBPACK_IMPORTED_MODULE_4__.Vector2();
+    this.last = new three__WEBPACK_IMPORTED_MODULE_4__.Vector2();
+    this.delta = new three__WEBPACK_IMPORTED_MODULE_4__.Vector2();
+    this.move = new three__WEBPACK_IMPORTED_MODULE_4__.Vector2();
+    this.world = new three__WEBPACK_IMPORTED_MODULE_4__.Vector3();
+    this.normalized = new three__WEBPACK_IMPORTED_MODULE_4__.Vector2();
+    this._tmp = new three__WEBPACK_IMPORTED_MODULE_4__.Vector3();
+    this.bind();
+  }
+
+  bind() {
+    const container = window;
+    container.addEventListener('touchstart', this.onStart.bind(this), {
+      passive: false
+    });
+    container.addEventListener('touchmove', this.onMove.bind(this), {
+      passive: false
+    });
+    container.addEventListener('touchend', this.onEnd.bind(this), {
+      passive: false
+    });
+    container.addEventListener('touchcancel', this.onEnd.bind(this), {
+      passive: false
+    });
+    container.addEventListener('mousedown', this.onStart.bind(this));
+    container.addEventListener('mousemove', this.onMove.bind(this));
+    container.addEventListener('mouseup', this.onEnd.bind(this));
+    container.addEventListener('contextmenu', this.onEnd.bind(this));
+  }
+
+  convertEvent(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const t = {
+      x: 0,
+      y: 0
+    };
+
+    if (!e) {
+      return t;
+    }
+
+    if (e.windowsPointer) {
+      return e;
+    }
+
+    if (e.touches || e.changedTouches) {
+      if (e.touches.length) {
+        t.x = e.touches[0].pageX;
+        t.y = e.touches[0].pageY;
+      } else {
+        t.x = e.changedTouches[0].pageX;
+        t.y = e.changedTouches[0].pageY;
+      }
+    } else {
+      t.x = e.pageX;
+      t.y = e.pageY;
+    }
+
+    t.x = (0,math_toolbox__WEBPACK_IMPORTED_MODULE_1__.clamp)(0, _viewport__WEBPACK_IMPORTED_MODULE_3__.viewport.width, t.x);
+    t.y = (0,math_toolbox__WEBPACK_IMPORTED_MODULE_1__.clamp)(0, _viewport__WEBPACK_IMPORTED_MODULE_3__.viewport.height, t.y);
+    return t;
+  }
+
+  onStart(event) {
+    const e = this.convertEvent(event);
+    this.isTouching = true;
+    this.x = e.x;
+    this.y = e.y;
+    this.hold.set(e.x, e.y);
+    this.last.set(e.x, e.y);
+    this.delta.set(0, 0);
+    this.move.set(0, 0);
+    this.normalized.x = this.x / _viewport__WEBPACK_IMPORTED_MODULE_3__.viewport.width * 2 - 1;
+    this.normalized.y = -(this.y / _viewport__WEBPACK_IMPORTED_MODULE_3__.viewport.height) * 2 + 1;
+    this.distance = 0;
+    bidello__WEBPACK_IMPORTED_MODULE_0__["default"].trigger({
+      name: 'pointerStart'
+    }, {
+      pointer: this
+    });
+  }
+
+  onMove(event) {
+    const e = this.convertEvent(event);
+
+    if (this.isTouching) {
+      this.move.x = e.x - this.hold.x;
+      this.move.y = e.y - this.hold.y;
+    } // if (this.last.x !== e.x || this.last.y !== e.y) {
+    //   this.last.set(this.x, this.y);
+    // }
+
+
+    this.x = e.x;
+    this.y = e.y;
+    this.delta.x = e.x - this.last.x;
+    this.delta.y = e.y - this.last.y;
+    this.distance += this.delta.length();
+    this.normalized.x = this.x / _viewport__WEBPACK_IMPORTED_MODULE_3__.viewport.width * 2 - 1;
+    this.normalized.y = -(this.y / _viewport__WEBPACK_IMPORTED_MODULE_3__.viewport.height) * 2 + 1;
+    this._tmp.x = this.normalized.x;
+    this._tmp.y = this.normalized.y;
+    this._tmp.z = 0.5;
+
+    this._tmp.unproject(_camera__WEBPACK_IMPORTED_MODULE_2__["default"]);
+
+    const dir = this._tmp.sub(_camera__WEBPACK_IMPORTED_MODULE_2__["default"].position).normalize();
+
+    const dist = -_camera__WEBPACK_IMPORTED_MODULE_2__["default"].position.z / dir.z;
+    this.world.copy(_camera__WEBPACK_IMPORTED_MODULE_2__["default"].position).add(dir.multiplyScalar(dist));
+    bidello__WEBPACK_IMPORTED_MODULE_0__["default"].trigger({
+      name: 'pointerMove'
+    }, {
+      pointer: this
+    });
+
+    if (this.isTouching) {
+      bidello__WEBPACK_IMPORTED_MODULE_0__["default"].trigger({
+        name: 'pointerDrag'
+      }, {
+        pointer: this
+      });
+    }
+  }
+
+  onEnd() {
+    this.isTouching = false;
+    this.move.set(0, 0);
+    bidello__WEBPACK_IMPORTED_MODULE_0__["default"].trigger({
+      name: 'pointerEnd'
+    }, {
+      pointer: this
+    });
+  }
+
+}
+
+const pointer = new Pointer();
+
+/***/ }),
+
+/***/ "./src/assets/js/bidello/raf.js":
+/*!**************************************!*\
+  !*** ./src/assets/js/bidello/raf.js ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "raf": () => (/* binding */ raf)
+/* harmony export */ });
+/* harmony import */ var bidello__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bidello */ "./node_modules/bidello/index.js");
+
+
+class Raf {
+  constructor() {
+    this.time = window.performance.now();
+    this.start = this.start.bind(this);
+    this.pause = this.pause.bind(this);
+    this.onTick = this.onTick.bind(this);
+    this.start();
+  }
+
+  start() {
+    this.startTime = window.performance.now();
+    this.oldTime = this.startTime;
+    this.isPaused = false;
+    this.onTick(this.startTime);
+  }
+
+  pause() {
+    this.isPaused = true;
+  }
+
+  onTick(now) {
+    this.time = now;
+
+    if (!this.isPaused) {
+      this.delta = (now - this.oldTime) / 1000;
+      this.oldTime = now;
+      bidello__WEBPACK_IMPORTED_MODULE_0__["default"].trigger({
+        name: 'raf'
+      }, {
+        delta: this.delta,
+        now
+      });
+    }
+
+    window.requestAnimationFrame(this.onTick);
+  }
+
+}
+
+const raf = new Raf();
+
+/***/ }),
+
+/***/ "./src/assets/js/bidello/viewport.js":
+/*!*******************************************!*\
+  !*** ./src/assets/js/bidello/viewport.js ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "viewport": () => (/* binding */ viewport)
+/* harmony export */ });
+/* harmony import */ var bidello__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bidello */ "./node_modules/bidello/index.js");
+
+
+class Viewport {
+  constructor() {
+    this.width = this.calculateWidth();
+    this.height = this.calculateHeight();
+    this.ratio = this.width / this.height;
+    this.onResize = this.onResize.bind(this);
+    this.onResize();
+    window.addEventListener('resize', this.onResize);
+  }
+
+  calculateWidth() {
+    return window.innerWidth;
+  }
+
+  calculateHeight() {
+    return window.innerHeight;
+  }
+
+  onResize() {
+    this.width = this.calculateWidth();
+    this.height = this.calculateHeight();
+    this.ratio = this.width / this.height;
+    bidello__WEBPACK_IMPORTED_MODULE_0__["default"].trigger({
+      name: 'resize',
+      fireAtStart: true
+    }, {
+      width: this.width,
+      height: this.height,
+      ratio: this.ratio
+    });
+  }
+
+}
+
+const viewport = new Viewport();
+
+/***/ }),
+
+/***/ "./src/assets/js/camera.js":
+/*!*********************************!*\
+  !*** ./src/assets/js/camera.js ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var bidello__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bidello */ "./node_modules/bidello/index.js");
+/* harmony import */ var three_examples_jsm_controls_OrbitControls__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! three/examples/jsm/controls/OrbitControls */ "./node_modules/three/examples/jsm/controls/OrbitControls.js");
+/* harmony import */ var _renderer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./renderer */ "./src/assets/js/renderer.js");
+/* harmony import */ var _mario__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./mario */ "./src/assets/js/mario.js");
+
+
+
+
+
+
+class Camera extends (0,bidello__WEBPACK_IMPORTED_MODULE_0__.component)(three__WEBPACK_IMPORTED_MODULE_4__.PerspectiveCamera) {
+  constructor() {
+    super(35, 0, 0.1, 500);
+  }
+
+  init() {
+    this.position.set(0, 0, 10);
+    this.lookAt(new three__WEBPACK_IMPORTED_MODULE_4__.Vector3(0, 0, 0));
+    this.initOrbitControl();
+  }
+
+  calculateUnitSize(distance = this.position.z) {
+    const vFov = this.fov * Math.PI / 180;
+    const height = 2 * Math.tan(vFov / 2) * distance;
+    const width = height * this.aspect;
+    return {
+      width,
+      height
+    };
+  }
+
+  initOrbitControl() {
+    const controls = new three_examples_jsm_controls_OrbitControls__WEBPACK_IMPORTED_MODULE_1__.OrbitControls(this, _renderer__WEBPACK_IMPORTED_MODULE_2__["default"].domElement);
+  }
+
+  onResize({
+    ratio
+  }) {
+    this.aspect = ratio;
+    this.unit = this.calculateUnitSize();
+    this.updateProjectionMatrix();
+  }
+
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new Camera());
+
+/***/ }),
+
+/***/ "./src/assets/js/mario.js":
+/*!********************************!*\
+  !*** ./src/assets/js/mario.js ***!
+  \********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Mario)
+/* harmony export */ });
+class Mario {
+  init() {
+    console.log('ok');
+  }
+
+}
+
+/***/ }),
+
+/***/ "./src/assets/js/renderer.js":
+/*!***********************************!*\
+  !*** ./src/assets/js/renderer.js ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var bidello__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bidello */ "./node_modules/bidello/index.js");
+
+
+
+class Renderer extends (0,bidello__WEBPACK_IMPORTED_MODULE_0__.component)(three__WEBPACK_IMPORTED_MODULE_1__.WebGLRenderer) {
+  constructor() {
+    super({
+      antialising: false
+    });
+    this.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  }
+
+  onResize({
+    width,
+    height
+  }) {
+    this.setSize(width, height);
+  }
+
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new Renderer());
+
+/***/ }),
+
+/***/ "./src/assets/js/scene.js":
+/*!********************************!*\
+  !*** ./src/assets/js/scene.js ***!
+  \********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var bidello__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bidello */ "./node_modules/bidello/index.js");
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var _ball__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ball */ "./src/assets/js/ball.js");
+/* harmony import */ var _camera__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./camera */ "./src/assets/js/camera.js");
+
+
+
+
+
+class Stage extends (0,bidello__WEBPACK_IMPORTED_MODULE_0__.component)(three__WEBPACK_IMPORTED_MODULE_3__.Scene) {
+  init() {
+    this.add(_camera__WEBPACK_IMPORTED_MODULE_2__["default"]);
+    this.add(new _ball__WEBPACK_IMPORTED_MODULE_1__["default"]());
+  }
+
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new Stage());
+
+/***/ }),
+
+/***/ "./src/assets/js/utils/fbo.js":
+/*!************************************!*\
+  !*** ./src/assets/js/utils/fbo.js ***!
+  \************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "isAvailable": () => (/* binding */ isAvailable),
+/* harmony export */   "default": () => (/* binding */ FBO)
+/* harmony export */ });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var _renderer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../renderer */ "./src/assets/js/renderer.js");
+/* harmony import */ var _triangle__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./triangle */ "./src/assets/js/utils/triangle.js");
+/* harmony import */ var _camera__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../camera */ "./src/assets/js/camera.js");
+/*
+this.position = new FBO({
+  width: 128,
+  height: 128,
+  name: 'position',
+  shader: require('./position.frag'),
+  uniforms: {
+    uTime: {
+      value: 0
+    },
+  },
+});
+
+this.position.target
+this.position.update()
+*/
+
+
+
+
+const isAvailable = (() => {
+  const gl = _renderer__WEBPACK_IMPORTED_MODULE_0__["default"].getContext();
+
+  if (!gl.getExtension('OES_texture_float')) {
+    return false;
+  }
+
+  if (gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) === 0) {
+    return false;
+  }
+
+  return true;
+})();
+const iOS = /(iPad|iPhone|iPod)/g.test(navigator.userAgent);
+const type = iOS ? three__WEBPACK_IMPORTED_MODULE_3__.HalfFloatType : three__WEBPACK_IMPORTED_MODULE_3__.FloatType;
+class FBO {
+  constructor({
+    width,
+    height,
+    data,
+    name,
+    shader,
+    texture,
+    uniforms = {},
+    rtOptions = {},
+    debug = false
+  }) {
+    this.options = arguments[0];
+    this.renderer = _renderer__WEBPACK_IMPORTED_MODULE_0__["default"];
+    this.camera = new three__WEBPACK_IMPORTED_MODULE_3__.Camera();
+    this.scene = new three__WEBPACK_IMPORTED_MODULE_3__.Scene();
+    this.index = 0;
+    this.copyData = true;
+    this.texture = texture || new three__WEBPACK_IMPORTED_MODULE_3__.DataTexture(data || new Float32Array(width * height * 4), width, height, three__WEBPACK_IMPORTED_MODULE_3__.RGBAFormat, three__WEBPACK_IMPORTED_MODULE_3__.FloatType);
+    this.texture.needsUpdate = true;
+    this.rt = [this.createRT(), this.createRT()];
+    this.material = new three__WEBPACK_IMPORTED_MODULE_3__.ShaderMaterial({
+      name: name || 'FBO',
+      defines: {
+        RESOLUTION: `vec2(${width.toFixed(1)}, ${height.toFixed(1)})`
+      },
+      uniforms: { ...uniforms,
+        texture: {
+          value: this.texture
+        }
+      },
+      vertexShader: `
+        precision highp float;
+
+        void main() {
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: shader || `
+        precision highp float;
+        uniform sampler2D texture;
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / RESOLUTION.xy;
+          gl_FragColor = texture2D(texture, uv);
+        }
+      `
+    });
+    this.mesh = new three__WEBPACK_IMPORTED_MODULE_3__.Mesh(_triangle__WEBPACK_IMPORTED_MODULE_1__["default"], this.material);
+    this.mesh.frustumCulled = false;
+    this.scene.add(this.mesh);
+
+    if (this.options.debug) {
+      this.initDebug();
+    }
+  }
+
+  initDebug() {
+    this.debugGeometry = new three__WEBPACK_IMPORTED_MODULE_3__.PlaneBufferGeometry(1 * (window.innerWidth / window.innerHeight), 1);
+    this.debugMaterial = new three__WEBPACK_IMPORTED_MODULE_3__.MeshBasicMaterial({
+      map: this.target
+    });
+    this.debugMesh = new three__WEBPACK_IMPORTED_MODULE_3__.Mesh(this.debugGeometry, this.debugMaterial);
+    this.debugMesh.position.set(0, 0, -1);
+    _camera__WEBPACK_IMPORTED_MODULE_2__["default"].add(this.debugMesh);
+  }
+
+  createRT() {
+    return new three__WEBPACK_IMPORTED_MODULE_3__.WebGLRenderTarget(this.options.width, this.options.height, Object.assign({
+      minFilter: three__WEBPACK_IMPORTED_MODULE_3__.NearestFilter,
+      magFilter: three__WEBPACK_IMPORTED_MODULE_3__.NearestFilter,
+      stencilBuffer: false,
+      depthBuffer: false,
+      depthWrite: false,
+      depthTest: false,
+      type
+    }, this.options.rtOptions));
+  }
+
+  get target() {
+    return this.rt[this.index].texture;
+  }
+
+  get uniforms() {
+    return this.material.uniforms;
+  } // TODO: test...
+
+
+  resize(width, height) {
+    this.material.defines.RESOLUTION = `vec2(${width.toFixed(1)}, ${height.toFixed(1)})`;
+    console.log(this.material.defines.RESOLUTION);
+    this.options.width = width;
+    this.options.height = height;
+    this.rt.forEach(rt => {
+      rt.setSize(width, height);
+    });
+  }
+
+  update(switchBack = true) {
+    const destIndex = this.index === 0 ? 1 : 0;
+    const old = this.rt[this.index];
+    const dest = this.rt[destIndex];
+    this.material.uniforms.texture.value = this.copyData ? this.texture : old.texture;
+    const oldMainTarget = this.renderer.getRenderTarget();
+    this.renderer.setRenderTarget(dest);
+    this.renderer.render(this.scene, this.camera);
+    switchBack && this.renderer.setRenderTarget(oldMainTarget);
+    this.index = destIndex;
+    this.copyData = false;
+  }
+
+}
+
+/***/ }),
+
+/***/ "./src/assets/js/utils/trail.js":
+/*!**************************************!*\
+  !*** ./src/assets/js/utils/trail.js ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var bidello__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bidello */ "./node_modules/bidello/index.js");
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var _fbo__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./fbo */ "./src/assets/js/utils/fbo.js");
+
+
+
+const shader = `
+precision highp float;
+
+uniform vec2 mousePos;
+uniform bool landscape;
+
+float sdfCircle(vec2 p, float r) {
+  return length(p) - r;
+}
+
+void main() {
+  vec2 uv = gl_FragCoord.xy / RESOLUTION.xy;
+  // vec2 pixelCoords = vec2(0.);
+  vec2 pixelCoords = (uv - 0.5) * vec2(RESOLUTION);
+
+  // if (landscape) {
+  // } else {
+  //   pixelCoords = (uv - 0.5) * vec2(RESOLUTION);
+  // }
+
+  vec3 color = vec3(1.);
+
+  float d = sdfCircle(pixelCoords - mousePos / 2. * vec2(RESOLUTION), 100.);
+  color = mix(vec3(1., 0., 0.), color, step(0., d));
+  // color = vec3(length(uv - 0.5));
+
+  gl_FragColor = vec4(vec3(color), 1.);
+}
+
+`;
+
+class Trail extends (0,bidello__WEBPACK_IMPORTED_MODULE_0__.component)() {
+  init() {
+    this.fbo = new _fbo__WEBPACK_IMPORTED_MODULE_1__["default"]({
+      width: innerWidth,
+      height: innerHeight,
+      name: 'trail',
+      shader,
+      uniforms: {
+        landscape: {
+          value: true
+        },
+        mousePos: {
+          value: new three__WEBPACK_IMPORTED_MODULE_2__.Vector2(0, 0)
+        }
+      }
+    });
+  }
+
+  onRaf() {
+    this.fbo.update();
+  }
+
+  onResize() {
+    let longerSide = innerWidth > innerHeight ? innerWidth : innerHeight;
+    this.fbo.resize(longerSide, longerSide);
+    this.fbo.uniforms.landscape.value = innerWidth > innerHeight;
+  }
+
+  onPointerMove({
+    pointer
+  }) {
+    let pointerSide = innerWidth > innerHeight ? pointer.normalized.x : pointer.normalized.y;
+    this.fbo.uniforms.mousePos.value.set(pointer.normalized.x, pointer.normalized.y);
+  }
+
+}
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (new Trail());
+
+/***/ }),
+
+/***/ "./src/assets/js/utils/triangle.js":
+/*!*****************************************!*\
+  !*** ./src/assets/js/utils/triangle.js ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+
+const vertices = new Float32Array([-1., -1., 3., -1., -1., 3.]);
+const geometry = new three__WEBPACK_IMPORTED_MODULE_0__.BufferGeometry();
+geometry.setAttribute('position', new three__WEBPACK_IMPORTED_MODULE_0__.BufferAttribute(vertices, 2));
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (geometry);
+
+/***/ }),
+
+/***/ "./node_modules/bidello/index.js":
+/*!***************************************!*\
+  !*** ./node_modules/bidello/index.js ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "component": () => (/* binding */ component),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+class Bidello {
+  constructor() {
+    this.data = {};
+    this.listeners = {};
+    this.fireAtStart = {};
+    this.instances = [];
+  }
+
+  on(e, f) {
+    this.listeners[e] = this.listeners[e] || [];
+    this.listeners[e].push(f);
+  }
+
+  off(e, f) {
+    if(e in this.listeners === false) {
+      return;
+    }
+
+    this.listeners[e].splice(this.listeners[e].indexOf(f), 1);
+  }
+
+  register(instance) {
+    this.instances.push(instance);
+
+    for (let k in this.fireAtStart) {
+      this.fireMethod(instance, k);
+    }
+  }
+
+  unregister(instance) {
+    const index = this.instances.indexOf(instance);
+
+    if (index > -1) {
+      this.instances.splice(index, 1);
+    }
+  }
+
+  nameToMethod(n) {
+    return `on${n.charAt(0).toUpperCase() + n.slice(1)}`;
+  }
+
+  fireMethod(instance, name) {
+    const method = instance[this.nameToMethod(name)];
+
+    if (typeof method === 'function') {
+      method.call(instance, this.data[name]);
+    }
+  }
+
+  trigger({
+    name,
+    fireAtStart = false,
+    log = false,
+  }, data = {}) {
+    this.data[name] = data;
+
+    if (fireAtStart) {
+      this.fireAtStart[name] = true;
+    }
+
+    if (log) {
+      console.log(`👨‍🏫 ${name} – ${data}`);
+    }
+
+    if (name in this.listeners) {
+      for (let i = 0; i < this.listeners[name].length; i++) {
+        this.listeners[name][i].call(this, data);
+      }
+    }
+
+    this.instances.forEach(instance => this.fireMethod(instance, name));
+  }
+};
+
+const bidelloSingleton = new Bidello();
+
+const component = (superclass = class T {}) => class extends superclass {
+  constructor(...args) {
+    super(...args);
+    this._args = args;
+    this.init && this.init();
+    bidelloSingleton.register(this);
+  }
+
+  destroy() {
+    bidelloSingleton.unregister(this);
+  }
+};
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (bidelloSingleton);
+
+
+/***/ }),
+
+/***/ "./node_modules/math-toolbox/dist/math-toolbox.es.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/math-toolbox/dist/math-toolbox.es.js ***!
+  \***********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "clamp": () => (/* binding */ clamp),
+/* harmony export */   "clamp01": () => (/* binding */ clamp01),
+/* harmony export */   "step": () => (/* binding */ step),
+/* harmony export */   "map": () => (/* binding */ map),
+/* harmony export */   "diagonal": () => (/* binding */ diagonal),
+/* harmony export */   "distance": () => (/* binding */ distance),
+/* harmony export */   "smoothStep": () => (/* binding */ smoothStep),
+/* harmony export */   "lerp": () => (/* binding */ lerp),
+/* harmony export */   "mix": () => (/* binding */ lerp),
+/* harmony export */   "normalize": () => (/* binding */ normalize),
+/* harmony export */   "randomFloat": () => (/* binding */ randomFloat),
+/* harmony export */   "randomInt": () => (/* binding */ randomInt),
+/* harmony export */   "randomSign": () => (/* binding */ randomSign),
+/* harmony export */   "wrap": () => (/* binding */ wrap),
+/* harmony export */   "degToRad": () => (/* binding */ degToRad),
+/* harmony export */   "toRadians": () => (/* binding */ degToRad),
+/* harmony export */   "radToDeg": () => (/* binding */ radToDeg),
+/* harmony export */   "toDegrees": () => (/* binding */ radToDeg),
+/* harmony export */   "fuzzyFloor": () => (/* binding */ fuzzyFloor),
+/* harmony export */   "fuzzyCeil": () => (/* binding */ fuzzyCeil),
+/* harmony export */   "fuzzyEqual": () => (/* binding */ fuzzyEqual),
+/* harmony export */   "fuzzyGreaterThan": () => (/* binding */ fuzzyGreaterThan),
+/* harmony export */   "fuzzyLessThan": () => (/* binding */ fuzzyLessThan),
+/* harmony export */   "maxAdd": () => (/* binding */ maxAdd),
+/* harmony export */   "minSub": () => (/* binding */ minSub),
+/* harmony export */   "isOdd": () => (/* binding */ isOdd),
+/* harmony export */   "isEven": () => (/* binding */ isEven),
+/* harmony export */   "isPowerOfTwo": () => (/* binding */ isPowerOfTwo),
+/* harmony export */   "closestPowerOfTwo": () => (/* binding */ closestPowerOfTwo),
+/* harmony export */   "nextPowerOfTwo": () => (/* binding */ nextPowerOfTwo),
+/* harmony export */   "percent01": () => (/* binding */ percent01),
+/* harmony export */   "average": () => (/* binding */ average),
+/* harmony export */   "difference": () => (/* binding */ difference),
+/* harmony export */   "within": () => (/* binding */ within),
+/* harmony export */   "inverseLerp": () => (/* binding */ inverseLerp),
+/* harmony export */   "inverseMix": () => (/* binding */ inverseLerp),
+/* harmony export */   "lerpUnclamped": () => (/* binding */ lerpUnclamped),
+/* harmony export */   "mixUnclamped": () => (/* binding */ lerpUnclamped),
+/* harmony export */   "deltaAngleDeg": () => (/* binding */ deltaAngleDeg$$1),
+/* harmony export */   "deltaAngle": () => (/* binding */ deltaAngleDeg$$1),
+/* harmony export */   "deltaAngleRad": () => (/* binding */ deltaAngleRad$$1),
+/* harmony export */   "fract": () => (/* binding */ fract),
+/* harmony export */   "mod": () => (/* binding */ mod),
+/* harmony export */   "lerpAngleDeg": () => (/* binding */ lerpAngleDeg$$1),
+/* harmony export */   "lerpAngle": () => (/* binding */ lerpAngleDeg$$1),
+/* harmony export */   "lerpAngleRad": () => (/* binding */ lerpAngleRad$$1),
+/* harmony export */   "gammaToLinearSpace": () => (/* binding */ gammaToLinearSpace),
+/* harmony export */   "linearToGammaSpace": () => (/* binding */ linearToGammaSpace),
+/* harmony export */   "almostIdentity": () => (/* binding */ almostIdentity),
+/* harmony export */   "impulse": () => (/* binding */ impulse),
+/* harmony export */   "cubicPulse": () => (/* binding */ cubicPulse),
+/* harmony export */   "expStep": () => (/* binding */ expStep),
+/* harmony export */   "parabola": () => (/* binding */ parabola),
+/* harmony export */   "powerCurve": () => (/* binding */ powerCurve),
+/* harmony export */   "smoothMin": () => (/* binding */ smoothMin),
+/* harmony export */   "smoothMax": () => (/* binding */ smoothMax),
+/* harmony export */   "deltaTime": () => (/* binding */ deltaTime),
+/* harmony export */   "gcd": () => (/* binding */ gcd),
+/* harmony export */   "dotProduct": () => (/* binding */ dotProduct)
+/* harmony export */ });
+/**
+ * Constrain a value to lie between two further values.
+ *
+ * @param  {number} min - Lower end of the range into which to constrain v.
+ * @param  {number} max - Upper end of the range into which to constrain v.
+ * @param  {number} v   - Value to clamp.
+ * @return {number} The value to constrain.
+ * @see {@link https://www.opengl.org/sdk/docs/man/html/clamp.xhtml}
+ */
+function clamp(min, max, v) {
+  return Math.min(max, Math.max(min, v));
+}
+
+/**
+ * Clamps a value between 0 and 1 and returns value
+ *
+ * @param  {number} v - Value to clamp
+ * @return {number} The clamped value
+ */
+function clamp01(v) {
+  return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+
+/**
+ * Generate a step function by comparing two values.
+ *
+ * @param  {number} edge - Location of the edge of the step function.
+ * @param  {number} v    - Value to be used to generate the step function.
+ * @return {number} Step value.
+ * @see {@link https://www.opengl.org/sdk/docs/man/html/step.xhtml}
+ */
+function step(edge, v) {
+  return v < edge ? 0 : 1;
+}
+
+/**
+ * Re-maps a number from one range to another (Also known as scale)
+ *
+ * @param  {number} value  - The incoming value to be converted
+ * @param  {number} start1 - Lower bound of the value's current range
+ * @param  {number} stop1  - Upper bound of the value's current range
+ * @param  {number} start2 - Lower bound of the value's target range
+ * @param  {number} stop2  - Upper bound of the value's target range
+ * @return {number} Remapped number
+ */
+function map(value, start1, stop1, start2, stop2) {
+  return (value - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+}
+
+/**
+ * Return diagonal of a rectangle.
+ *
+ * @param  {number} w - Width.
+ * @param  {number} h - Height.
+ * @return {number} Diagonal length.
+ */
+function diagonal(w, h) {
+  return Math.sqrt(w * w + h * h);
+}
+
+/**
+ * Returns the euclidian distance between the two given set of coordinates
+ *
+ * @param  {number} x1 - X coord of the first point.
+ * @param  {number} y1 - Y coord of the first point.
+ * @param  {number} x2 - X coord of the second point.
+ * @param  {number} y2 - Y coord of the second point.
+ * @return {number} The computed distance.
+ */
+function distance(x1, y1, x2, y2) {
+  var dx = x1 - x2;
+  var dy = y1 - y2;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+/**
+ * Smooth a value.
+ *
+ * @param  {number} min - Minimum boundary.
+ * @param  {number} max - Maximum boundary.
+ * @param  {number} v   - Value.
+ * @return {number} Smoothed value.
+ */
+function smoothStep(min, max, v) {
+  var x = Math.max(0, Math.min(1, (v - min) / (max - min)));
+  return x * x * (3 - 2 * x);
+}
+
+/**
+ * Linearly interpolate between two values (mix).
+ *
+ * @param  {number} x - Start of the range in which to interpolate.
+ * @param  {number} y - End of the range in which to interpolate.
+ * @param  {number} r - Value to use to interpolate between x and y.
+ * @return {number} Lerped value
+ * @see {@link https://www.opengl.org/sdk/docs/man/html/mix.xhtml}
+ */
+function lerp(x, y, r) {
+  return x + (y - x) * r;
+}
+
+/**
+ * Normalize a value between two bounds.
+ *
+ * @param  {number} min - Minimum boundary.
+ * @param  {number} max - Maximum boundary.
+ * @param  {number} x   - Value to normalize.
+ * @return {number} Normalized value.
+ */
+function normalize(min, max, x) {
+  return (x - min) / (max - min);
+}
+
+/**
+ * Generate a random float.
+ *
+ * @param  {number} minValue      - Minimum boundary.
+ * @param  {number} maxValue      - Maximum boundary.
+ * @param  {number} [precision=2] - Precision.
+ * @return {number} Generated float.
+ */
+function randomFloat(minValue, maxValue) {
+  var precision = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 2;
+
+  return parseFloat(Math.min(minValue + Math.random() * (maxValue - minValue), maxValue).toFixed(precision));
+}
+
+/**
+ * Generate a random integer
+ *
+ * @param  {number} min - Minimum boundary.
+ * @param  {number} max - Maximum boundary.
+ * @return {number} Generated integer.
+ */
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+/**
+ * Generate random sign (1 or -1).
+ *
+ * @return {number} Either 1 or -1.
+ */
+function randomSign() {
+  return Math.random() > 0.5 ? 1 : -1;
+}
+
+/**
+ * Ensures that the value always stays between min and max, by wrapping the value around.
+ * If 'max' is not larger than 'min' the result is 0.
+ *
+ * @param {number} value - The value to wrap.
+ * @param {number} min   - The minimum the value is allowed to be.
+ * @param {number} max   - The maximum the value is allowed to be, should be larger than 'min'.
+ * @return {number} Wrapped value.
+ */
+function wrap(value, min, max) {
+  var range = max - min;
+  if (range <= 0) return 0;
+
+  var result = (value - min) % range;
+  if (result < 0) result += range;
+
+  return result + min;
+}
+
+/**
+ * Convert degrees to radians.
+ *
+ * @param  {number} degrees - Degrees.
+ * @return {number} Angel in radians.
+ */
+function degToRad(degrees) {
+  return degrees * Math.PI / 180;
+}
+
+/**
+ * Convert radians to degrees.
+ *
+ * @param  {number} radians - Radians.
+ * @return {number} Angel in degrees.
+ */
+function radToDeg(radians) {
+  return radians * 180 / Math.PI;
+}
+
+/**
+* Calculates a fuzzy floor to the given value.
+*
+* @param  {number} value - The value to floor.
+* @param  {number} [epsilon=0.0001] - The epsilon (a small value used in the calculation).
+* @return {number} floor(value+epsilon).
+*/
+function fuzzyFloor(value) {
+  var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.0001;
+
+  return Math.floor(value + epsilon);
+}
+
+/**
+* Calculates a fuzzy ceil to the given value.
+*
+* @param  {number} value - The value to ceil.
+* @param  {number} [epsilon=0.0001] - The epsilon (a small value used in the calculation).
+* @return {number} ceiling(value+epsilon).
+*/
+function fuzzyCeil(value) {
+  var epsilon = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.0001;
+
+  return Math.ceil(value + epsilon);
+}
+
+/**
+* Two numbers are fuzzyEqual if their difference is less than epsilon.
+*
+* @param  {number} a - The first number to compare.
+* @param  {number} b - The second number to compare.
+* @param  {number} [epsilon=0.0001] - The epsilon (a small value used in the calculation).
+* @return {boolean} True if |a-b|<epsilona otherwise false.
+*/
+function fuzzyEqual(a, b) {
+  var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0.0001;
+
+  return Math.abs(a - b) < epsilon;
+}
+
+/**
+* A is fuzzyGreaterThan B if it is more than B - epsilon.
+*
+* @param  {number} a - The first number to compare.
+* @param  {number} b - The second number to compare.
+* @param  {number} [epsilon=0.0001] - The epsilon (a small value used in the calculation).
+* @return {boolean} True if a>b-epsilon.
+*/
+function fuzzyGreaterThan(a, b) {
+  var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0.0001;
+
+  return a > b - epsilon;
+}
+
+/**
+* A is fuzzyLessThan B if it is less than B + epsilon.
+*
+* @param  {number} a - The first number to compare.
+* @param  {number} b - The second number to compare.
+* @param  {number} [epsilon=0.0001] - The epsilon (a small value used in the calculation).
+* @return {boolean} True if a<b+epsilon.
+*/
+function fuzzyLessThan(a, b) {
+  var epsilon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0.0001;
+
+  return a < b + epsilon;
+}
+
+/**
+ * Adds the given amount to the value, but never lets the value go over the specified maximum.
+ *
+ * @param {number} value - The value to add the amount to.
+ * @param {number} amount - The amount to add to the value.
+ * @param {number} max - The maximum the value is allowed to be.
+ * @return {number} The new value.
+ */
+function maxAdd(value, amount, max) {
+  return Math.min(value + amount, max);
+}
+
+/**
+ * Subtracts the given amount from the value, but never lets the value go below the specified minimum.
+ *
+ * @param {number} value - The base value.
+ * @param {number} amount - The amount to subtract from the base value.
+ * @param {number} min - The minimum the value is allowed to be.
+ * @return {number} The new value.
+ */
+function minSub(value, amount, min) {
+  return Math.max(value - amount, min);
+}
+
+/**
+ * Returns true if the number given is odd.
+ *
+ * @param  {number} number - The number to check.
+ * @return {boolean} True if the given number is odd. False if the given number is even.
+ */
+function isOdd(number) {
+  return !!(number & 1);
+}
+
+/**
+ * Returns true if the number given is even.
+ *
+ * @param  {number} number - The number to check.
+ * @return {boolean} True if the given number is even. False if the given number is false.
+ */
+function isEven(number) {
+  return !(number & 1);
+}
+
+/**
+ * Checks if a number is a power of two.
+ *
+ * @param   {number}  value Number to test.
+ * @returns {boolean} returns true if the value is power of two.
+ */
+function isPowerOfTwo(value) {
+  return value !== 0 && (value & value - 1) === 0;
+}
+
+/**
+ * Returns the closest power of two value.
+ *
+ * @param  {number} value - Value.
+ * @return {number} The nearest power of 2i.
+ */
+function closestPowerOfTwo(value) {
+  return Math.pow(2, Math.round(Math.log(value) / Math.log(2)));
+}
+
+/**
+ * Returns the next power of two value.
+ *
+ * @param  {number} v - Value.
+ * @return {number} The next power of two.
+ */
+function nextPowerOfTwo(v) {
+  return Math.pow(2, Math.ceil(Math.log(v) / Math.log(2)));
+}
+
+/**
+ * Work out what percentage value `a` is of value `b` using the given base.
+ * Clamps returned value between 0-1.
+ *
+ * @param  {number} a - The percent to work out.
+ * @param  {number} b - The value you wish to get the percentage of.
+ * @param  {number} [base=0] - The base value.
+ * @return {number} The percentage a is of b, clamped between 0 and 1.
+ */
+function percent01(a, b) {
+  var base = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+
+  if (a > b || base > b) {
+    return 1;
+  } else if (a < base || base > a) {
+    return 0;
+  } else {
+    return (a - base) / b;
+  }
+}
+
+/**
+ * Return the avarage of all values passed to the function.
+ *
+ * @param  {...number} numbers - The numbers to average.
+ * @return {number} The average of all given values.
+ */
+function average() {
+  var sum = 0;
+
+  for (var _len = arguments.length, numbers = Array(_len), _key = 0; _key < _len; _key++) {
+    numbers[_key] = arguments[_key];
+  }
+
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = numbers[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var number = _step.value;
+
+      sum += +number;
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  return sum / numbers.length;
+}
+
+/**
+ * The absolute difference between two values.
+ *
+ * @param {number} a - The first value to check.
+ * @param {number} b - The second value to check.
+ * @return {number} The absolute difference between the two values.
+ */
+function difference(a, b) {
+  return Math.abs(a - b);
+}
+
+/**
+* Checks if two values are within the given tolerance of each other.
+*
+* @param {number} a - The first number to check
+* @param {number} b - The second number to check
+* @param {number} tolerance - The tolerance. Anything equal to or less than this is considered within the range.
+* @return {boolean} True if a is <= tolerance of b.
+*/
+function within(a, b, tolerance) {
+  return Math.abs(a - b) <= tolerance;
+}
+
+/**
+ * Calculates the linear parameter t that produces the interpolant value within the range [a, b].
+ *
+ * @param {number} a - The start value.
+ * @param {number} b - The end value.
+ * @param {number} v - The value.
+ * @return {number} The result of the reverse interpolation.
+ * @see {@link https://docs.unity3d.com/ScriptReference/Mathf.InverseLerp.html}
+ */
+function inverseLerp(a, b, v) {
+  return (v - a) / (b - a);
+}
+
+/**
+ * Linearly interpolates between x and y by a with no limit to a.
+ *
+ * @param  {number} x - The start value.
+ * @param  {number} y - The end value.
+ * @param  {number} a - The interpolation between the two floats.
+ * @return {number} The float value as a result from the linear interpolation.
+ * @see {@link https://docs.unity3d.com/ScriptReference/Mathf.LerpUnclamped.html}
+ */
+function lerpUnclamped(x, y, a) {
+  if (a <= 0) return x;
+  if (a >= 1) return y;
+  return x + a * (y - x);
+}
+
+/**
+ * Calculates the shortest difference between two given angles given in degrees.
+ *
+ * @param  {number} a - Current.
+ * @param  {number} b - Target.
+ * @return {number} The distance.
+ * @see {@link https://docs.unity3d.com/ScriptReference/Mathf.DeltaAngle.html}
+ */
+function deltaAngleDeg$$1(a, b) {
+  var d = mod(b - a, 360);
+  if (d > 180) d = Math.abs(d - 360);
+  return d;
+}
+
+/**
+ * Calculates the shortest difference between two given angles given in radians.
+ *
+ * @param  {number} a - Current.
+ * @param  {number} b - Target.
+ * @return {number} The distance.
+ * @see {@link https://docs.unity3d.com/ScriptReference/Mathf.DeltaAngle.html}
+ */
+function deltaAngleRad$$1(a, b) {
+  return degToRad(deltaAngleDeg$$1(radToDeg(a), radToDeg(b)));
+}
+
+/**
+ * Compute the fractional part of the argument.
+ *
+ * @param  {number} v - Specify the value to evaluate.
+ * @return {number} Returns the fractional part of x.
+ * @see {@link https://www.opengl.org/sdk/docs/man/html/fract.xhtml}
+ */
+function fract(v) {
+  return v - Math.floor(v);
+}
+
+/**
+ * Compute value of one parameter modulo another.
+ *
+ * @param  {number} a - Value a.
+ * @param  {number} n - Value b.
+ * @return {number} Returns the value of x modulo n.
+ * @see {@link https://www.opengl.org/sdk/docs/man4/html/mod.xhtml}
+ */
+function mod(a, n) {
+  return (a % n + n) % n;
+}
+
+/**
+ * Same as Lerp but makes sure the values interpolate correctly when they wrap around 360 degrees.
+ *
+ * @param  {number} a - The start value.
+ * @param  {number} b - The end value.
+ * @param  {number} t - Value to inerpolate.
+ * @return {number} The interpolated value.
+ * @see {@link https://docs.unity3d.com/ScriptReference/Mathf.LerpAngle.html}
+ */
+function lerpAngleDeg$$1(a, b, t) {
+  var angle = deltaAngleDeg$$1(a, b);
+  return mod(a + lerp(0, angle, t), 360);
+}
+
+/**
+ * Same as Lerp but makes sure the values interpolate correctly when they wrap around 2 radians.
+ *
+ * @param  {number} a - The start value.
+ * @param  {number} b - The end value.
+ * @param  {number} t - Value to inerpolate.
+ * @return {number} The interpolated value.
+ */
+function lerpAngleRad$$1(a, b, t) {
+  return degToRad(lerpAngleDeg$$1(radToDeg(a), radToDeg(b), t));
+}
+
+/**
+ * Converts the given value from gamma (sRGB) to linear color space.
+ *
+ * @param  {number} v - Gamma value.
+ * @return {number} Value in linear color space.
+ * @see {@link https://docs.unity3d.com/ScriptReference/Mathf.GammaToLinearSpace.html}
+ */
+function gammaToLinearSpace(v) {
+  return Math.pow(v, 2.2);
+}
+
+/**
+ * Converts the given value from linear to gamma (sRGB) color space.
+ *
+ * @param  {number} v - Linear color space value.
+ * @return {number} Value in gamma.
+ * @see {@link https://docs.unity3d.com/ScriptReference/Mathf.LinearToGammaSpace.html}
+ */
+function linearToGammaSpace(v) {
+  return Math.pow(v, 1 / 2.2);
+}
+
+/**
+ * Almost Identity.
+ *
+ * @param  {number} x - Input value.
+ * @param  {number} m - Threshold.
+ * @param  {number} n - The value to take when x is zero.
+ * @return {number} Smoothed value.
+ * @see {@link http://www.iquilezles.org/www/articles/functions/functions.htm}
+ */
+function almostIdentity(x, m, n) {
+  if (x > m) return x;
+
+  var a = 2 * n - m;
+  var b = 2 * m - 3 * n;
+  var t = x / m;
+
+  return (a * t + b) * t * t + n;
+}
+
+/**
+ * Impulse.
+ *
+ * @param  {number} k - Stretching of the function. Max is 1.0.
+ * @param  {number} x - Input value.
+ * @return {number} Impulse.
+ * @see {@link http://www.iquilezles.org/www/articles/functions/functions.htm}
+ */
+function impulse(k, x) {
+  var h = k * x;
+  return h * Math.exp(1 - h);
+}
+
+/**
+ * Cubic Pulse.
+ *
+ * @param  {number} c - Edge 1.
+ * @param  {number} w - Edge 2.
+ * @param  {number} x - Source value for interpolation.
+ * @return {number} Cubic pulse.
+ * @see {@link http://www.iquilezles.org/www/articles/functions/functions.htm}
+ */
+function cubicPulse(c, w, x) {
+  x = Math.abs(x - c);
+  if (x > w) return 0;
+  x /= w;
+  return 1 - x * x * (3 - 2 * x);
+}
+
+/**
+ * ExpStep.
+ *
+ * @param  {number} x - Value to be used to generate the step function.
+ * @param  {number} k - Edge of the step.
+ * @param  {number} n - n value.
+ * @return {number} Exponential step.
+ * @see {@link http://www.iquilezles.org/www/articles/functions/functions.htm}
+ */
+function expStep(x, k, n) {
+  return Math.exp(-k * Math.pow(x, n));
+}
+
+/**
+ * Remap the 0..1 interval into 0..1 parabola, such that the corners are remaped to 0 and the center to 1.
+ * In other words, parabola(0) = parabola(1) = 0, and parabola(1/2) = 1.
+ *
+ * @param  {number} x - Coordinate on X axis.
+ * @param  {number} k - Value to map.
+ * @return {number} Mapped value.
+ * @see {@link http://www.iquilezles.org/www/articles/functions/functions.htm}
+ */
+function parabola(x, k) {
+  return Math.pow(4 * x * (1 - x), k);
+}
+
+/**
+ * Power Curve.
+ *
+ * @param  {number} x - Input value.
+ * @param  {number} a - Edge 1.
+ * @param  {number} b - Edge 2.
+ * @return {number} Value.
+ * @see {@link http://www.iquilezles.org/www/articles/functions/functions.htm}
+ */
+function powerCurve(x, a, b) {
+  var k = Math.pow(a + b, a + b) / (Math.pow(a, a) * Math.pow(b, b));
+  return k * Math.pow(x, a) * Math.pow(1 - x, b);
+}
+
+/**
+ * Smooth Min.
+ *
+ * @param  {number} a - First value to compare.
+ * @param  {number} b - Second value to compare.
+ * @param  {number} k - Radious/distance of the smoothness.
+ * @return {number} Smooth min output.
+ * @see {@link http://iquilezles.org/www/articles/smin/smin.htm}
+ */
+function smoothMin(a, b, k) {
+  var res = Math.exp(-k * a) + Math.exp(-k * b);
+  return -Math.log(res) / k;
+}
+
+/**
+ * Smooth Max.
+ *
+ * @param  {number} a - First value to compare.
+ * @param  {number} b - Second value to compare.
+ * @param  {number} k - Radious/distance of the smoothness.
+ * @return {number} Smooth min output.
+ * @see {@link http://iquilezles.org/www/articles/smin/smin.htm}
+ */
+function smoothMax(a, b, k) {
+  return Math.log(Math.exp(a) + Math.exp(b)) / k;
+}
+
+/**
+ * Return delta time
+ *
+ * @param  {number} oldTime - Time previous frame in milliseconds
+ * @param  {number} [newTime=Date.now()] - Time current frame in milliseconds
+ * @return {number} Time difference in milliseconds
+ */
+function deltaTime(oldTime) {
+  var newTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Date.now();
+
+  return newTime - oldTime;
+}
+
+/**
+ * Compute the greatest common divisor using Euclid's algorithm.
+ *
+ * @param  {number} a - Value one.
+ * @param  {number} b - Value two.
+ * @return {number} Greatest common divisor.
+ * @see {@link https://en.wikipedia.org/wiki/Greatest_common_divisor#Using_Euclid.27s_algorithm}
+ */
+function gcd(a, b) {
+  if (b === 0) return a;
+  return gcd(b, a % b);
+}
+
+/**
+ * Compute the dot product of any pair of 2D vectors.
+ *
+ * @param  {number} x0 - First x start position.
+ * @param  {number} y0 - First y start position.
+ * @param  {number} x1 - First x end position.
+ * @param  {number} y1 - First y end position.
+ * @param  {number} x2 - Second x start position.
+ * @param  {number} y2 - Second y start position.
+ * @param  {number} x3 - Second x end position.
+ * @param  {number} y3 - Second y end position.
+ * @return {number} Dot product.
+ */
+function dotProduct(x0, y0, x1, y1, x2, y2, x3, y3) {
+  var dx0 = x1 - x0;
+  var dy0 = y1 - y0;
+  var dx1 = x3 - x2;
+  var dy1 = y3 - y2;
+
+  return dx0 * dx1 + dy0 * dy1;
+}
+
+
+
+
+/***/ }),
+
 /***/ "./node_modules/three/build/three.module.js":
 /*!**************************************************!*\
   !*** ./node_modules/three/build/three.module.js ***!
@@ -50203,6 +51864,1308 @@ if ( typeof window !== 'undefined' ) {
 
 
 
+/***/ }),
+
+/***/ "./node_modules/three/examples/jsm/controls/OrbitControls.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/three/examples/jsm/controls/OrbitControls.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "OrbitControls": () => (/* binding */ OrbitControls),
+/* harmony export */   "MapControls": () => (/* binding */ MapControls)
+/* harmony export */ });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+
+
+// This set of controls performs orbiting, dollying (zooming), and panning.
+// Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
+//
+//    Orbit - left mouse / touch: one-finger move
+//    Zoom - middle mouse, or mousewheel / touch: two-finger spread or squish
+//    Pan - right mouse, or left mouse + ctrl/meta/shiftKey, or arrow keys / touch: two-finger move
+
+const _changeEvent = { type: 'change' };
+const _startEvent = { type: 'start' };
+const _endEvent = { type: 'end' };
+
+class OrbitControls extends three__WEBPACK_IMPORTED_MODULE_0__.EventDispatcher {
+
+	constructor( object, domElement ) {
+
+		super();
+
+		if ( domElement === undefined ) console.warn( 'THREE.OrbitControls: The second parameter "domElement" is now mandatory.' );
+		if ( domElement === document ) console.error( 'THREE.OrbitControls: "document" should not be used as the target "domElement". Please use "renderer.domElement" instead.' );
+
+		this.object = object;
+		this.domElement = domElement;
+		this.domElement.style.touchAction = 'none'; // disable touch scroll
+
+		// Set to false to disable this control
+		this.enabled = true;
+
+		// "target" sets the location of focus, where the object orbits around
+		this.target = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+		// How far you can dolly in and out ( PerspectiveCamera only )
+		this.minDistance = 0;
+		this.maxDistance = Infinity;
+
+		// How far you can zoom in and out ( OrthographicCamera only )
+		this.minZoom = 0;
+		this.maxZoom = Infinity;
+
+		// How far you can orbit vertically, upper and lower limits.
+		// Range is 0 to Math.PI radians.
+		this.minPolarAngle = 0; // radians
+		this.maxPolarAngle = Math.PI; // radians
+
+		// How far you can orbit horizontally, upper and lower limits.
+		// If set, the interval [ min, max ] must be a sub-interval of [ - 2 PI, 2 PI ], with ( max - min < 2 PI )
+		this.minAzimuthAngle = - Infinity; // radians
+		this.maxAzimuthAngle = Infinity; // radians
+
+		// Set to true to enable damping (inertia)
+		// If damping is enabled, you must call controls.update() in your animation loop
+		this.enableDamping = false;
+		this.dampingFactor = 0.05;
+
+		// This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
+		// Set to false to disable zooming
+		this.enableZoom = true;
+		this.zoomSpeed = 1.0;
+
+		// Set to false to disable rotating
+		this.enableRotate = true;
+		this.rotateSpeed = 1.0;
+
+		// Set to false to disable panning
+		this.enablePan = true;
+		this.panSpeed = 1.0;
+		this.screenSpacePanning = true; // if false, pan orthogonal to world-space direction camera.up
+		this.keyPanSpeed = 7.0;	// pixels moved per arrow key push
+
+		// Set to true to automatically rotate around the target
+		// If auto-rotate is enabled, you must call controls.update() in your animation loop
+		this.autoRotate = false;
+		this.autoRotateSpeed = 2.0; // 30 seconds per orbit when fps is 60
+
+		// The four arrow keys
+		this.keys = { LEFT: 'ArrowLeft', UP: 'ArrowUp', RIGHT: 'ArrowRight', BOTTOM: 'ArrowDown' };
+
+		// Mouse buttons
+		this.mouseButtons = { LEFT: three__WEBPACK_IMPORTED_MODULE_0__.MOUSE.ROTATE, MIDDLE: three__WEBPACK_IMPORTED_MODULE_0__.MOUSE.DOLLY, RIGHT: three__WEBPACK_IMPORTED_MODULE_0__.MOUSE.PAN };
+
+		// Touch fingers
+		this.touches = { ONE: three__WEBPACK_IMPORTED_MODULE_0__.TOUCH.ROTATE, TWO: three__WEBPACK_IMPORTED_MODULE_0__.TOUCH.DOLLY_PAN };
+
+		// for reset
+		this.target0 = this.target.clone();
+		this.position0 = this.object.position.clone();
+		this.zoom0 = this.object.zoom;
+
+		// the target DOM element for key events
+		this._domElementKeyEvents = null;
+
+		//
+		// public methods
+		//
+
+		this.getPolarAngle = function () {
+
+			return spherical.phi;
+
+		};
+
+		this.getAzimuthalAngle = function () {
+
+			return spherical.theta;
+
+		};
+
+		this.getDistance = function () {
+
+			return this.object.position.distanceTo( this.target );
+
+		};
+
+		this.listenToKeyEvents = function ( domElement ) {
+
+			domElement.addEventListener( 'keydown', onKeyDown );
+			this._domElementKeyEvents = domElement;
+
+		};
+
+		this.saveState = function () {
+
+			scope.target0.copy( scope.target );
+			scope.position0.copy( scope.object.position );
+			scope.zoom0 = scope.object.zoom;
+
+		};
+
+		this.reset = function () {
+
+			scope.target.copy( scope.target0 );
+			scope.object.position.copy( scope.position0 );
+			scope.object.zoom = scope.zoom0;
+
+			scope.object.updateProjectionMatrix();
+			scope.dispatchEvent( _changeEvent );
+
+			scope.update();
+
+			state = STATE.NONE;
+
+		};
+
+		// this method is exposed, but perhaps it would be better if we can make it private...
+		this.update = function () {
+
+			const offset = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+			// so camera.up is the orbit axis
+			const quat = new three__WEBPACK_IMPORTED_MODULE_0__.Quaternion().setFromUnitVectors( object.up, new three__WEBPACK_IMPORTED_MODULE_0__.Vector3( 0, 1, 0 ) );
+			const quatInverse = quat.clone().invert();
+
+			const lastPosition = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+			const lastQuaternion = new three__WEBPACK_IMPORTED_MODULE_0__.Quaternion();
+
+			const twoPI = 2 * Math.PI;
+
+			return function update() {
+
+				const position = scope.object.position;
+
+				offset.copy( position ).sub( scope.target );
+
+				// rotate offset to "y-axis-is-up" space
+				offset.applyQuaternion( quat );
+
+				// angle from z-axis around y-axis
+				spherical.setFromVector3( offset );
+
+				if ( scope.autoRotate && state === STATE.NONE ) {
+
+					rotateLeft( getAutoRotationAngle() );
+
+				}
+
+				if ( scope.enableDamping ) {
+
+					spherical.theta += sphericalDelta.theta * scope.dampingFactor;
+					spherical.phi += sphericalDelta.phi * scope.dampingFactor;
+
+				} else {
+
+					spherical.theta += sphericalDelta.theta;
+					spherical.phi += sphericalDelta.phi;
+
+				}
+
+				// restrict theta to be between desired limits
+
+				let min = scope.minAzimuthAngle;
+				let max = scope.maxAzimuthAngle;
+
+				if ( isFinite( min ) && isFinite( max ) ) {
+
+					if ( min < - Math.PI ) min += twoPI; else if ( min > Math.PI ) min -= twoPI;
+
+					if ( max < - Math.PI ) max += twoPI; else if ( max > Math.PI ) max -= twoPI;
+
+					if ( min <= max ) {
+
+						spherical.theta = Math.max( min, Math.min( max, spherical.theta ) );
+
+					} else {
+
+						spherical.theta = ( spherical.theta > ( min + max ) / 2 ) ?
+							Math.max( min, spherical.theta ) :
+							Math.min( max, spherical.theta );
+
+					}
+
+				}
+
+				// restrict phi to be between desired limits
+				spherical.phi = Math.max( scope.minPolarAngle, Math.min( scope.maxPolarAngle, spherical.phi ) );
+
+				spherical.makeSafe();
+
+
+				spherical.radius *= scale;
+
+				// restrict radius to be between desired limits
+				spherical.radius = Math.max( scope.minDistance, Math.min( scope.maxDistance, spherical.radius ) );
+
+				// move target to panned location
+
+				if ( scope.enableDamping === true ) {
+
+					scope.target.addScaledVector( panOffset, scope.dampingFactor );
+
+				} else {
+
+					scope.target.add( panOffset );
+
+				}
+
+				offset.setFromSpherical( spherical );
+
+				// rotate offset back to "camera-up-vector-is-up" space
+				offset.applyQuaternion( quatInverse );
+
+				position.copy( scope.target ).add( offset );
+
+				scope.object.lookAt( scope.target );
+
+				if ( scope.enableDamping === true ) {
+
+					sphericalDelta.theta *= ( 1 - scope.dampingFactor );
+					sphericalDelta.phi *= ( 1 - scope.dampingFactor );
+
+					panOffset.multiplyScalar( 1 - scope.dampingFactor );
+
+				} else {
+
+					sphericalDelta.set( 0, 0, 0 );
+
+					panOffset.set( 0, 0, 0 );
+
+				}
+
+				scale = 1;
+
+				// update condition is:
+				// min(camera displacement, camera rotation in radians)^2 > EPS
+				// using small-angle approximation cos(x/2) = 1 - x^2 / 8
+
+				if ( zoomChanged ||
+					lastPosition.distanceToSquared( scope.object.position ) > EPS ||
+					8 * ( 1 - lastQuaternion.dot( scope.object.quaternion ) ) > EPS ) {
+
+					scope.dispatchEvent( _changeEvent );
+
+					lastPosition.copy( scope.object.position );
+					lastQuaternion.copy( scope.object.quaternion );
+					zoomChanged = false;
+
+					return true;
+
+				}
+
+				return false;
+
+			};
+
+		}();
+
+		this.dispose = function () {
+
+			scope.domElement.removeEventListener( 'contextmenu', onContextMenu );
+
+			scope.domElement.removeEventListener( 'pointerdown', onPointerDown );
+			scope.domElement.removeEventListener( 'pointercancel', onPointerCancel );
+			scope.domElement.removeEventListener( 'wheel', onMouseWheel );
+
+			scope.domElement.removeEventListener( 'pointermove', onPointerMove );
+			scope.domElement.removeEventListener( 'pointerup', onPointerUp );
+
+
+			if ( scope._domElementKeyEvents !== null ) {
+
+				scope._domElementKeyEvents.removeEventListener( 'keydown', onKeyDown );
+
+			}
+
+			//scope.dispatchEvent( { type: 'dispose' } ); // should this be added here?
+
+		};
+
+		//
+		// internals
+		//
+
+		const scope = this;
+
+		const STATE = {
+			NONE: - 1,
+			ROTATE: 0,
+			DOLLY: 1,
+			PAN: 2,
+			TOUCH_ROTATE: 3,
+			TOUCH_PAN: 4,
+			TOUCH_DOLLY_PAN: 5,
+			TOUCH_DOLLY_ROTATE: 6
+		};
+
+		let state = STATE.NONE;
+
+		const EPS = 0.000001;
+
+		// current position in spherical coordinates
+		const spherical = new three__WEBPACK_IMPORTED_MODULE_0__.Spherical();
+		const sphericalDelta = new three__WEBPACK_IMPORTED_MODULE_0__.Spherical();
+
+		let scale = 1;
+		const panOffset = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+		let zoomChanged = false;
+
+		const rotateStart = new three__WEBPACK_IMPORTED_MODULE_0__.Vector2();
+		const rotateEnd = new three__WEBPACK_IMPORTED_MODULE_0__.Vector2();
+		const rotateDelta = new three__WEBPACK_IMPORTED_MODULE_0__.Vector2();
+
+		const panStart = new three__WEBPACK_IMPORTED_MODULE_0__.Vector2();
+		const panEnd = new three__WEBPACK_IMPORTED_MODULE_0__.Vector2();
+		const panDelta = new three__WEBPACK_IMPORTED_MODULE_0__.Vector2();
+
+		const dollyStart = new three__WEBPACK_IMPORTED_MODULE_0__.Vector2();
+		const dollyEnd = new three__WEBPACK_IMPORTED_MODULE_0__.Vector2();
+		const dollyDelta = new three__WEBPACK_IMPORTED_MODULE_0__.Vector2();
+
+		const pointers = [];
+		const pointerPositions = {};
+
+		function getAutoRotationAngle() {
+
+			return 2 * Math.PI / 60 / 60 * scope.autoRotateSpeed;
+
+		}
+
+		function getZoomScale() {
+
+			return Math.pow( 0.95, scope.zoomSpeed );
+
+		}
+
+		function rotateLeft( angle ) {
+
+			sphericalDelta.theta -= angle;
+
+		}
+
+		function rotateUp( angle ) {
+
+			sphericalDelta.phi -= angle;
+
+		}
+
+		const panLeft = function () {
+
+			const v = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+			return function panLeft( distance, objectMatrix ) {
+
+				v.setFromMatrixColumn( objectMatrix, 0 ); // get X column of objectMatrix
+				v.multiplyScalar( - distance );
+
+				panOffset.add( v );
+
+			};
+
+		}();
+
+		const panUp = function () {
+
+			const v = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+			return function panUp( distance, objectMatrix ) {
+
+				if ( scope.screenSpacePanning === true ) {
+
+					v.setFromMatrixColumn( objectMatrix, 1 );
+
+				} else {
+
+					v.setFromMatrixColumn( objectMatrix, 0 );
+					v.crossVectors( scope.object.up, v );
+
+				}
+
+				v.multiplyScalar( distance );
+
+				panOffset.add( v );
+
+			};
+
+		}();
+
+		// deltaX and deltaY are in pixels; right and down are positive
+		const pan = function () {
+
+			const offset = new three__WEBPACK_IMPORTED_MODULE_0__.Vector3();
+
+			return function pan( deltaX, deltaY ) {
+
+				const element = scope.domElement;
+
+				if ( scope.object.isPerspectiveCamera ) {
+
+					// perspective
+					const position = scope.object.position;
+					offset.copy( position ).sub( scope.target );
+					let targetDistance = offset.length();
+
+					// half of the fov is center to top of screen
+					targetDistance *= Math.tan( ( scope.object.fov / 2 ) * Math.PI / 180.0 );
+
+					// we use only clientHeight here so aspect ratio does not distort speed
+					panLeft( 2 * deltaX * targetDistance / element.clientHeight, scope.object.matrix );
+					panUp( 2 * deltaY * targetDistance / element.clientHeight, scope.object.matrix );
+
+				} else if ( scope.object.isOrthographicCamera ) {
+
+					// orthographic
+					panLeft( deltaX * ( scope.object.right - scope.object.left ) / scope.object.zoom / element.clientWidth, scope.object.matrix );
+					panUp( deltaY * ( scope.object.top - scope.object.bottom ) / scope.object.zoom / element.clientHeight, scope.object.matrix );
+
+				} else {
+
+					// camera neither orthographic nor perspective
+					console.warn( 'WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.' );
+					scope.enablePan = false;
+
+				}
+
+			};
+
+		}();
+
+		function dollyOut( dollyScale ) {
+
+			if ( scope.object.isPerspectiveCamera ) {
+
+				scale /= dollyScale;
+
+			} else if ( scope.object.isOrthographicCamera ) {
+
+				scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom * dollyScale ) );
+				scope.object.updateProjectionMatrix();
+				zoomChanged = true;
+
+			} else {
+
+				console.warn( 'WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.' );
+				scope.enableZoom = false;
+
+			}
+
+		}
+
+		function dollyIn( dollyScale ) {
+
+			if ( scope.object.isPerspectiveCamera ) {
+
+				scale *= dollyScale;
+
+			} else if ( scope.object.isOrthographicCamera ) {
+
+				scope.object.zoom = Math.max( scope.minZoom, Math.min( scope.maxZoom, scope.object.zoom / dollyScale ) );
+				scope.object.updateProjectionMatrix();
+				zoomChanged = true;
+
+			} else {
+
+				console.warn( 'WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.' );
+				scope.enableZoom = false;
+
+			}
+
+		}
+
+		//
+		// event callbacks - update the object state
+		//
+
+		function handleMouseDownRotate( event ) {
+
+			rotateStart.set( event.clientX, event.clientY );
+
+		}
+
+		function handleMouseDownDolly( event ) {
+
+			dollyStart.set( event.clientX, event.clientY );
+
+		}
+
+		function handleMouseDownPan( event ) {
+
+			panStart.set( event.clientX, event.clientY );
+
+		}
+
+		function handleMouseMoveRotate( event ) {
+
+			rotateEnd.set( event.clientX, event.clientY );
+
+			rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( scope.rotateSpeed );
+
+			const element = scope.domElement;
+
+			rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientHeight ); // yes, height
+
+			rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
+
+			rotateStart.copy( rotateEnd );
+
+			scope.update();
+
+		}
+
+		function handleMouseMoveDolly( event ) {
+
+			dollyEnd.set( event.clientX, event.clientY );
+
+			dollyDelta.subVectors( dollyEnd, dollyStart );
+
+			if ( dollyDelta.y > 0 ) {
+
+				dollyOut( getZoomScale() );
+
+			} else if ( dollyDelta.y < 0 ) {
+
+				dollyIn( getZoomScale() );
+
+			}
+
+			dollyStart.copy( dollyEnd );
+
+			scope.update();
+
+		}
+
+		function handleMouseMovePan( event ) {
+
+			panEnd.set( event.clientX, event.clientY );
+
+			panDelta.subVectors( panEnd, panStart ).multiplyScalar( scope.panSpeed );
+
+			pan( panDelta.x, panDelta.y );
+
+			panStart.copy( panEnd );
+
+			scope.update();
+
+		}
+
+		function handleMouseUp( /*event*/ ) {
+
+			// no-op
+
+		}
+
+		function handleMouseWheel( event ) {
+
+			if ( event.deltaY < 0 ) {
+
+				dollyIn( getZoomScale() );
+
+			} else if ( event.deltaY > 0 ) {
+
+				dollyOut( getZoomScale() );
+
+			}
+
+			scope.update();
+
+		}
+
+		function handleKeyDown( event ) {
+
+			let needsUpdate = false;
+
+			switch ( event.code ) {
+
+				case scope.keys.UP:
+					pan( 0, scope.keyPanSpeed );
+					needsUpdate = true;
+					break;
+
+				case scope.keys.BOTTOM:
+					pan( 0, - scope.keyPanSpeed );
+					needsUpdate = true;
+					break;
+
+				case scope.keys.LEFT:
+					pan( scope.keyPanSpeed, 0 );
+					needsUpdate = true;
+					break;
+
+				case scope.keys.RIGHT:
+					pan( - scope.keyPanSpeed, 0 );
+					needsUpdate = true;
+					break;
+
+			}
+
+			if ( needsUpdate ) {
+
+				// prevent the browser from scrolling on cursor keys
+				event.preventDefault();
+
+				scope.update();
+
+			}
+
+
+		}
+
+		function handleTouchStartRotate() {
+
+			if ( pointers.length === 1 ) {
+
+				rotateStart.set( pointers[ 0 ].pageX, pointers[ 0 ].pageY );
+
+			} else {
+
+				const x = 0.5 * ( pointers[ 0 ].pageX + pointers[ 1 ].pageX );
+				const y = 0.5 * ( pointers[ 0 ].pageY + pointers[ 1 ].pageY );
+
+				rotateStart.set( x, y );
+
+			}
+
+		}
+
+		function handleTouchStartPan() {
+
+			if ( pointers.length === 1 ) {
+
+				panStart.set( pointers[ 0 ].pageX, pointers[ 0 ].pageY );
+
+			} else {
+
+				const x = 0.5 * ( pointers[ 0 ].pageX + pointers[ 1 ].pageX );
+				const y = 0.5 * ( pointers[ 0 ].pageY + pointers[ 1 ].pageY );
+
+				panStart.set( x, y );
+
+			}
+
+		}
+
+		function handleTouchStartDolly() {
+
+			const dx = pointers[ 0 ].pageX - pointers[ 1 ].pageX;
+			const dy = pointers[ 0 ].pageY - pointers[ 1 ].pageY;
+
+			const distance = Math.sqrt( dx * dx + dy * dy );
+
+			dollyStart.set( 0, distance );
+
+		}
+
+		function handleTouchStartDollyPan() {
+
+			if ( scope.enableZoom ) handleTouchStartDolly();
+
+			if ( scope.enablePan ) handleTouchStartPan();
+
+		}
+
+		function handleTouchStartDollyRotate() {
+
+			if ( scope.enableZoom ) handleTouchStartDolly();
+
+			if ( scope.enableRotate ) handleTouchStartRotate();
+
+		}
+
+		function handleTouchMoveRotate( event ) {
+
+			if ( pointers.length == 1 ) {
+
+				rotateEnd.set( event.pageX, event.pageY );
+
+			} else {
+
+				const position = getSecondPointerPosition( event );
+
+				const x = 0.5 * ( event.pageX + position.x );
+				const y = 0.5 * ( event.pageY + position.y );
+
+				rotateEnd.set( x, y );
+
+			}
+
+			rotateDelta.subVectors( rotateEnd, rotateStart ).multiplyScalar( scope.rotateSpeed );
+
+			const element = scope.domElement;
+
+			rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientHeight ); // yes, height
+
+			rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight );
+
+			rotateStart.copy( rotateEnd );
+
+		}
+
+		function handleTouchMovePan( event ) {
+
+			if ( pointers.length === 1 ) {
+
+				panEnd.set( event.pageX, event.pageY );
+
+			} else {
+
+				const position = getSecondPointerPosition( event );
+
+				const x = 0.5 * ( event.pageX + position.x );
+				const y = 0.5 * ( event.pageY + position.y );
+
+				panEnd.set( x, y );
+
+			}
+
+			panDelta.subVectors( panEnd, panStart ).multiplyScalar( scope.panSpeed );
+
+			pan( panDelta.x, panDelta.y );
+
+			panStart.copy( panEnd );
+
+		}
+
+		function handleTouchMoveDolly( event ) {
+
+			const position = getSecondPointerPosition( event );
+
+			const dx = event.pageX - position.x;
+			const dy = event.pageY - position.y;
+
+			const distance = Math.sqrt( dx * dx + dy * dy );
+
+			dollyEnd.set( 0, distance );
+
+			dollyDelta.set( 0, Math.pow( dollyEnd.y / dollyStart.y, scope.zoomSpeed ) );
+
+			dollyOut( dollyDelta.y );
+
+			dollyStart.copy( dollyEnd );
+
+		}
+
+		function handleTouchMoveDollyPan( event ) {
+
+			if ( scope.enableZoom ) handleTouchMoveDolly( event );
+
+			if ( scope.enablePan ) handleTouchMovePan( event );
+
+		}
+
+		function handleTouchMoveDollyRotate( event ) {
+
+			if ( scope.enableZoom ) handleTouchMoveDolly( event );
+
+			if ( scope.enableRotate ) handleTouchMoveRotate( event );
+
+		}
+
+		function handleTouchEnd( /*event*/ ) {
+
+			// no-op
+
+		}
+
+		//
+		// event handlers - FSM: listen for events and reset state
+		//
+
+		function onPointerDown( event ) {
+
+			if ( scope.enabled === false ) return;
+
+			if ( pointers.length === 0 ) {
+
+				scope.domElement.setPointerCapture( event.pointerId );
+
+				scope.domElement.addEventListener( 'pointermove', onPointerMove );
+				scope.domElement.addEventListener( 'pointerup', onPointerUp );
+
+			}
+
+			//
+
+			addPointer( event );
+
+			if ( event.pointerType === 'touch' ) {
+
+				onTouchStart( event );
+
+			} else {
+
+				onMouseDown( event );
+
+			}
+
+		}
+
+		function onPointerMove( event ) {
+
+			if ( scope.enabled === false ) return;
+
+			if ( event.pointerType === 'touch' ) {
+
+				onTouchMove( event );
+
+			} else {
+
+				onMouseMove( event );
+
+			}
+
+		}
+
+		function onPointerUp( event ) {
+
+			if ( scope.enabled === false ) return;
+
+			if ( event.pointerType === 'touch' ) {
+
+				onTouchEnd();
+
+			} else {
+
+				onMouseUp( event );
+
+			}
+
+			removePointer( event );
+
+			//
+
+			if ( pointers.length === 0 ) {
+
+				scope.domElement.releasePointerCapture( event.pointerId );
+
+				scope.domElement.removeEventListener( 'pointermove', onPointerMove );
+				scope.domElement.removeEventListener( 'pointerup', onPointerUp );
+
+			}
+
+		}
+
+		function onPointerCancel( event ) {
+
+			removePointer( event );
+
+		}
+
+		function onMouseDown( event ) {
+
+			let mouseAction;
+
+			switch ( event.button ) {
+
+				case 0:
+
+					mouseAction = scope.mouseButtons.LEFT;
+					break;
+
+				case 1:
+
+					mouseAction = scope.mouseButtons.MIDDLE;
+					break;
+
+				case 2:
+
+					mouseAction = scope.mouseButtons.RIGHT;
+					break;
+
+				default:
+
+					mouseAction = - 1;
+
+			}
+
+			switch ( mouseAction ) {
+
+				case three__WEBPACK_IMPORTED_MODULE_0__.MOUSE.DOLLY:
+
+					if ( scope.enableZoom === false ) return;
+
+					handleMouseDownDolly( event );
+
+					state = STATE.DOLLY;
+
+					break;
+
+				case three__WEBPACK_IMPORTED_MODULE_0__.MOUSE.ROTATE:
+
+					if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+
+						if ( scope.enablePan === false ) return;
+
+						handleMouseDownPan( event );
+
+						state = STATE.PAN;
+
+					} else {
+
+						if ( scope.enableRotate === false ) return;
+
+						handleMouseDownRotate( event );
+
+						state = STATE.ROTATE;
+
+					}
+
+					break;
+
+				case three__WEBPACK_IMPORTED_MODULE_0__.MOUSE.PAN:
+
+					if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
+
+						if ( scope.enableRotate === false ) return;
+
+						handleMouseDownRotate( event );
+
+						state = STATE.ROTATE;
+
+					} else {
+
+						if ( scope.enablePan === false ) return;
+
+						handleMouseDownPan( event );
+
+						state = STATE.PAN;
+
+					}
+
+					break;
+
+				default:
+
+					state = STATE.NONE;
+
+			}
+
+			if ( state !== STATE.NONE ) {
+
+				scope.dispatchEvent( _startEvent );
+
+			}
+
+		}
+
+		function onMouseMove( event ) {
+
+			if ( scope.enabled === false ) return;
+
+			switch ( state ) {
+
+				case STATE.ROTATE:
+
+					if ( scope.enableRotate === false ) return;
+
+					handleMouseMoveRotate( event );
+
+					break;
+
+				case STATE.DOLLY:
+
+					if ( scope.enableZoom === false ) return;
+
+					handleMouseMoveDolly( event );
+
+					break;
+
+				case STATE.PAN:
+
+					if ( scope.enablePan === false ) return;
+
+					handleMouseMovePan( event );
+
+					break;
+
+			}
+
+		}
+
+		function onMouseUp( event ) {
+
+			handleMouseUp( event );
+
+			scope.dispatchEvent( _endEvent );
+
+			state = STATE.NONE;
+
+		}
+
+		function onMouseWheel( event ) {
+
+			if ( scope.enabled === false || scope.enableZoom === false || state !== STATE.NONE ) return;
+
+			event.preventDefault();
+
+			scope.dispatchEvent( _startEvent );
+
+			handleMouseWheel( event );
+
+			scope.dispatchEvent( _endEvent );
+
+		}
+
+		function onKeyDown( event ) {
+
+			if ( scope.enabled === false || scope.enablePan === false ) return;
+
+			handleKeyDown( event );
+
+		}
+
+		function onTouchStart( event ) {
+
+			trackPointer( event );
+
+			switch ( pointers.length ) {
+
+				case 1:
+
+					switch ( scope.touches.ONE ) {
+
+						case three__WEBPACK_IMPORTED_MODULE_0__.TOUCH.ROTATE:
+
+							if ( scope.enableRotate === false ) return;
+
+							handleTouchStartRotate();
+
+							state = STATE.TOUCH_ROTATE;
+
+							break;
+
+						case three__WEBPACK_IMPORTED_MODULE_0__.TOUCH.PAN:
+
+							if ( scope.enablePan === false ) return;
+
+							handleTouchStartPan();
+
+							state = STATE.TOUCH_PAN;
+
+							break;
+
+						default:
+
+							state = STATE.NONE;
+
+					}
+
+					break;
+
+				case 2:
+
+					switch ( scope.touches.TWO ) {
+
+						case three__WEBPACK_IMPORTED_MODULE_0__.TOUCH.DOLLY_PAN:
+
+							if ( scope.enableZoom === false && scope.enablePan === false ) return;
+
+							handleTouchStartDollyPan();
+
+							state = STATE.TOUCH_DOLLY_PAN;
+
+							break;
+
+						case three__WEBPACK_IMPORTED_MODULE_0__.TOUCH.DOLLY_ROTATE:
+
+							if ( scope.enableZoom === false && scope.enableRotate === false ) return;
+
+							handleTouchStartDollyRotate();
+
+							state = STATE.TOUCH_DOLLY_ROTATE;
+
+							break;
+
+						default:
+
+							state = STATE.NONE;
+
+					}
+
+					break;
+
+				default:
+
+					state = STATE.NONE;
+
+			}
+
+			if ( state !== STATE.NONE ) {
+
+				scope.dispatchEvent( _startEvent );
+
+			}
+
+		}
+
+		function onTouchMove( event ) {
+
+			trackPointer( event );
+
+			switch ( state ) {
+
+				case STATE.TOUCH_ROTATE:
+
+					if ( scope.enableRotate === false ) return;
+
+					handleTouchMoveRotate( event );
+
+					scope.update();
+
+					break;
+
+				case STATE.TOUCH_PAN:
+
+					if ( scope.enablePan === false ) return;
+
+					handleTouchMovePan( event );
+
+					scope.update();
+
+					break;
+
+				case STATE.TOUCH_DOLLY_PAN:
+
+					if ( scope.enableZoom === false && scope.enablePan === false ) return;
+
+					handleTouchMoveDollyPan( event );
+
+					scope.update();
+
+					break;
+
+				case STATE.TOUCH_DOLLY_ROTATE:
+
+					if ( scope.enableZoom === false && scope.enableRotate === false ) return;
+
+					handleTouchMoveDollyRotate( event );
+
+					scope.update();
+
+					break;
+
+				default:
+
+					state = STATE.NONE;
+
+			}
+
+		}
+
+		function onTouchEnd( event ) {
+
+			handleTouchEnd( event );
+
+			scope.dispatchEvent( _endEvent );
+
+			state = STATE.NONE;
+
+		}
+
+		function onContextMenu( event ) {
+
+			if ( scope.enabled === false ) return;
+
+			event.preventDefault();
+
+		}
+
+		function addPointer( event ) {
+
+			pointers.push( event );
+
+		}
+
+		function removePointer( event ) {
+
+			delete pointerPositions[ event.pointerId ];
+
+			for ( let i = 0; i < pointers.length; i ++ ) {
+
+				if ( pointers[ i ].pointerId == event.pointerId ) {
+
+					pointers.splice( i, 1 );
+					return;
+
+				}
+
+			}
+
+		}
+
+		function trackPointer( event ) {
+
+			let position = pointerPositions[ event.pointerId ];
+
+			if ( position === undefined ) {
+
+				position = new three__WEBPACK_IMPORTED_MODULE_0__.Vector2();
+				pointerPositions[ event.pointerId ] = position;
+
+			}
+
+			position.set( event.pageX, event.pageY );
+
+		}
+
+		function getSecondPointerPosition( event ) {
+
+			const pointer = ( event.pointerId === pointers[ 0 ].pointerId ) ? pointers[ 1 ] : pointers[ 0 ];
+
+			return pointerPositions[ pointer.pointerId ];
+
+		}
+
+		//
+
+		scope.domElement.addEventListener( 'contextmenu', onContextMenu );
+
+		scope.domElement.addEventListener( 'pointerdown', onPointerDown );
+		scope.domElement.addEventListener( 'pointercancel', onPointerCancel );
+		scope.domElement.addEventListener( 'wheel', onMouseWheel, { passive: false } );
+
+		// force an update at start
+
+		this.update();
+
+	}
+
+}
+
+
+// This set of controls performs orbiting, dollying (zooming), and panning.
+// Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
+// This is very similar to OrbitControls, another set of touch behavior
+//
+//    Orbit - right mouse, or left mouse + ctrl/meta/shiftKey / touch: two-finger rotate
+//    Zoom - middle mouse, or mousewheel / touch: two-finger spread or squish
+//    Pan - left mouse, or arrow keys / touch: one-finger move
+
+class MapControls extends OrbitControls {
+
+	constructor( object, domElement ) {
+
+		super( object, domElement );
+
+		this.screenSpacePanning = false; // pan orthogonal to world-space direction camera.up
+
+		this.mouseButtons.LEFT = three__WEBPACK_IMPORTED_MODULE_0__.MOUSE.PAN;
+		this.mouseButtons.RIGHT = three__WEBPACK_IMPORTED_MODULE_0__.MOUSE.ROTATE;
+
+		this.touches.ONE = three__WEBPACK_IMPORTED_MODULE_0__.TOUCH.PAN;
+		this.touches.TWO = three__WEBPACK_IMPORTED_MODULE_0__.TOUCH.DOLLY_ROTATE;
+
+	}
+
+}
+
+
+
+
 /***/ })
 
 /******/ 	});
@@ -50268,193 +53231,29 @@ var __webpack_exports__ = {};
   !*** ./src/assets/js/index.js ***!
   \********************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var _bidello__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./bidello */ "./src/assets/js/bidello/index.js");
+/* harmony import */ var _renderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./renderer */ "./src/assets/js/renderer.js");
+/* harmony import */ var _camera__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./camera */ "./src/assets/js/camera.js");
+/* harmony import */ var _scene__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./scene */ "./src/assets/js/scene.js");
+/* harmony import */ var bidello__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! bidello */ "./node_modules/bidello/index.js");
 
-const LABEL_TEXT = 'PINGOPONGO';
-const clock = new three__WEBPACK_IMPORTED_MODULE_0__.Clock();
-const scene = new three__WEBPACK_IMPORTED_MODULE_0__.Scene(); // Create a new framebuffer we will use to render to
-// the video card memory
 
-let renderBufferA = new three__WEBPACK_IMPORTED_MODULE_0__.WebGLRenderTarget(innerWidth * devicePixelRatio, innerHeight * devicePixelRatio);
-let renderBufferB = new three__WEBPACK_IMPORTED_MODULE_0__.WebGLRenderTarget(innerWidth * devicePixelRatio, innerHeight * devicePixelRatio); // Create a threejs renderer:
-// 1. Size it correctly
-// 2. Set default background color
-// 3. Append it to the page
 
-const renderer = new three__WEBPACK_IMPORTED_MODULE_0__.WebGLRenderer();
-renderer.setClearColor(0x222222);
-renderer.setClearAlpha(0);
-renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(devicePixelRatio || 1);
-document.body.appendChild(renderer.domElement); // Create an orthographic camera that covers the entire screen
-// 1. Position it correctly in the positive Z dimension
-// 2. Orient it towards the scene center
 
-const orthoCamera = new three__WEBPACK_IMPORTED_MODULE_0__.OrthographicCamera(-innerWidth / 2, innerWidth / 2, innerHeight / 2, -innerHeight / 2, 0.1, 10);
-orthoCamera.position.set(0, 0, 1);
-orthoCamera.lookAt(new three__WEBPACK_IMPORTED_MODULE_0__.Vector3(0, 0, 0)); // Create a plane geometry that spawns either the entire
-// viewport height or width depending on which one is bigger
 
-const labelMeshSize = innerWidth > innerHeight ? innerHeight : innerWidth;
-const labelGeometry = new three__WEBPACK_IMPORTED_MODULE_0__.PlaneBufferGeometry(labelMeshSize, labelMeshSize); // Programmaticaly create a texture that will hold the text
 
-let labelTextureCanvas;
-{
-  // Canvas and corresponding context2d to be used for
-  // drawing the text
-  labelTextureCanvas = document.createElement('canvas');
-  const labelTextureCtx = labelTextureCanvas.getContext('2d'); // Dynamic texture size based on the device capabilities
+class Site extends (0,bidello__WEBPACK_IMPORTED_MODULE_4__.component)() {
+  init() {
+    document.body.appendChild(_renderer__WEBPACK_IMPORTED_MODULE_1__["default"].domElement);
+  }
 
-  const textureSize = Math.min(renderer.capabilities.maxTextureSize, 2048);
-  const relativeFontSize = 20; // Size our text canvas
+  onRaf() {
+    _renderer__WEBPACK_IMPORTED_MODULE_1__["default"].render(_scene__WEBPACK_IMPORTED_MODULE_3__["default"], _camera__WEBPACK_IMPORTED_MODULE_2__["default"]);
+  }
 
-  labelTextureCanvas.width = textureSize;
-  labelTextureCanvas.height = textureSize;
-  labelTextureCtx.textAlign = 'center';
-  labelTextureCtx.textBaseline = 'middle'; // Dynamic font size based on the texture size
-  // (based on the device capabilities)
-
-  labelTextureCtx.font = `${relativeFontSize}px Helvetica`;
-  const textWidth = labelTextureCtx.measureText(LABEL_TEXT).width;
-  const widthDelta = labelTextureCanvas.width / textWidth;
-  const fontSize = relativeFontSize * widthDelta;
-  labelTextureCtx.font = `${fontSize}px Helvetica`;
-  labelTextureCtx.fillStyle = 'white';
-  labelTextureCtx.fillText(LABEL_TEXT, labelTextureCanvas.width / 2, labelTextureCanvas.height / 2);
-} // Create a material with our programmaticaly created text
-// texture as input
-
-const labelMaterial = new three__WEBPACK_IMPORTED_MODULE_0__.MeshBasicMaterial({
-  map: new three__WEBPACK_IMPORTED_MODULE_0__.CanvasTexture(labelTextureCanvas),
-  transparent: true
-}); // Create a plane mesh, add it to the scene
-
-const labelMesh = new three__WEBPACK_IMPORTED_MODULE_0__.Mesh(labelGeometry, labelMaterial);
-scene.add(labelMesh); // Create a second scene that will hold our fullscreen plane
-
-const postFXScene = new three__WEBPACK_IMPORTED_MODULE_0__.Scene(); // Create a plane geometry that covers the entire screen
-
-const postFXGeometry = new three__WEBPACK_IMPORTED_MODULE_0__.PlaneBufferGeometry(innerWidth, innerHeight); // Create a plane material that expects a sampler texture input
-// We will pass our generated framebuffer texture to it
-
-const postFXMaterial = new three__WEBPACK_IMPORTED_MODULE_0__.ShaderMaterial({
-  uniforms: {
-    sampler: {
-      value: null
-    },
-    time: {
-      value: 0
-    },
-    mousePos: {
-      value: new three__WEBPACK_IMPORTED_MODULE_0__.Vector2(0, 0)
-    }
-  },
-  // vertex shader will be in charge of positioning our plane correctly
-  vertexShader: `
-      varying vec2 v_uv;
-
-      void main () {
-        // Set the correct position of each plane vertex
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-
-        // Pass in the correct UVs to the fragment shader
-        v_uv = uv;
-      }
-    `,
-  fragmentShader: `
-      uniform float time;
-      uniform vec2 mousePos;
-
-      // Simplex 2D noise
-      vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
-
-      float snoise(vec2 v){
-        const vec4 C = vec4(0.211324865405187, 0.366025403784439,
-                 -0.577350269189626, 0.024390243902439);
-        vec2 i  = floor(v + dot(v, C.yy) );
-        vec2 x0 = v -   i + dot(i, C.xx);
-        vec2 i1;
-        i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-        vec4 x12 = x0.xyxy + C.xxzz;
-        x12.xy -= i1;
-        i = mod(i, 289.0);
-        vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
-        + i.x + vec3(0.0, i1.x, 1.0 ));
-        vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy),
-          dot(x12.zw,x12.zw)), 0.0);
-        m = m*m ;
-        m = m*m ;
-        vec3 x = 2.0 * fract(p * C.www) - 1.0;
-        vec3 h = abs(x) - 0.5;
-        vec3 ox = floor(x + 0.5);
-        vec3 a0 = x - ox;
-        m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
-        vec3 g;
-        g.x  = a0.x  * x0.x  + h.x  * x0.y;
-        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-        return 130.0 * dot(m, g);
-      }
-
-      // Declare our texture input as a "sampler" variable
-      uniform sampler2D sampler;
-
-      // Consume the correct UVs from the vertex shader to use
-      // when displaying the generated texture
-      varying vec2 v_uv;
-
-      void main () {
-        float a = snoise(vec2(v_uv.x, time * 0.1)) * 0.0032;
-        float b = snoise(vec2(v_uv.x, time * 0.1 + 100.0)) * 0.0032;
-
-        // Sample the correct color from the generated texture
-        vec4 inputColor = texture2D(sampler, v_uv + vec2(a, b) + mousePos * 0.005);
-
-        // Set the correct color of each pixel that makes up the plane
-        gl_FragColor = vec4(inputColor * 0.9);
-      }
-    `
-});
-const postFXMesh = new three__WEBPACK_IMPORTED_MODULE_0__.Mesh(postFXGeometry, postFXMaterial);
-postFXScene.add(postFXMesh); // ... animation loop code here, same as before
-// Start out animation render loop
-
-renderer.setAnimationLoop(onAnimLoop); // Attach mousemove event listener
-
-document.addEventListener('mousemove', onMouseMove);
-
-function onMouseMove(e) {
-  // Normalise horizontal mouse pos from -1 to 1
-  const x = e.pageX / innerWidth * 2 - 1; // Normalise vertical mouse pos from -1 to 1
-
-  const y = (1 - e.pageY / innerHeight) * 2 - 1; // Pass normalised mouse coordinates to fragment shader
-
-  postFXMesh.material.uniforms.mousePos.value.set(x, y);
 }
 
-function onAnimLoop() {
-  // Do not clear the contents of the canvas on each render
-  // In order to achieve our effect, we must draw the new frame
-  // on top of the previous one!
-  renderer.autoClearColor = false; // Explicitly set renderBufferA as the framebuffer to render to
-
-  renderer.setRenderTarget(renderBufferA); // On each new frame, render the scene to renderBufferA
-
-  renderer.render(postFXScene, orthoCamera);
-  renderer.render(scene, orthoCamera); // Set the device screen as the framebuffer to render to
-  // In WebGL, framebuffer "null" corresponds to the default framebuffer!
-
-  renderer.setRenderTarget(null); // Assign the generated texture to the sampler variable used
-  // in the postFXMesh that covers the device screen
-
-  postFXMesh.material.uniforms.sampler.value = renderBufferA.texture; // Render the postFX mesh to the default framebuffer
-
-  renderer.render(postFXScene, orthoCamera); // Ping-pong our framebuffers by swapping them
-  // at the end of each frame render
-
-  const temp = renderBufferA;
-  renderBufferA = renderBufferB;
-  renderBufferB = temp;
-}
+new Site();
 })();
 
 /******/ })()

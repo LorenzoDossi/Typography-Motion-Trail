@@ -1,6 +1,6 @@
 ---
 title: video test
-layout: index.liquid
+layout: main.liquid
 permalink: "/"
 tags: page
 ---
