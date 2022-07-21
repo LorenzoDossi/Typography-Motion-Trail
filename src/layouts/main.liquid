@@ -8,6 +8,24 @@
   <link rel="stylesheet" href="/assets/main.css?{{ 'now' | date: '%H%M%S' }}">
 </head>
 <body>
+  <div class="">
+    <!-- {% include 'siteHeader' %} -->
+
+    <main class="o-container app" data-scroll-container>
+      <h1>demo text</h1>
+      <!-- {{ content }} -->
+    </main>
+
+    <!-- {% include 'siteFooter' %} -->
+  </div>
+
   <script src="/assets/main.js?{{ 'now' | date: '%H%M%S' }}"></script>
+  <style>
+    canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 100;
+    }
+  </style>
 </body>
 </html>

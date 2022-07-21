@@ -27,11 +27,11 @@ import {
   Mesh,
   PlaneBufferGeometry,
   MeshBasicMaterial,
-  ShaderMaterial,
 } from 'three';
 import renderer from '../renderer';
 import triangle from './triangle';
 import camera from '../camera';
+import { RawShaderMaterial } from 'three';
 
 export const isAvailable = (() => {
   const gl = renderer.getContext();
@@ -80,8 +80,9 @@ export default class FBO {
 
     this.rt = [this.createRT(), this.createRT()];
 
-    this.material = new ShaderMaterial({
+    this.material = new RawShaderMaterial({
       name: name || 'FBO',
+      transparent: true,
       defines: {
         RESOLUTION: `vec2(${width.toFixed(1)}, ${height.toFixed(1)})`
       },
@@ -93,9 +94,10 @@ export default class FBO {
       },
       vertexShader: `
         precision highp float;
+        attribute vec3 position;
 
         void main() {
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          gl_Position = vec4(position, 1.0);
         }
       `,
       fragmentShader: shader || `
@@ -119,13 +121,13 @@ export default class FBO {
   }
 
   initDebug() {
-    this.debugGeometry = new PlaneBufferGeometry(1 * (window.innerWidth / window.innerHeight), 1);
+    this.debugGeometry = new PlaneBufferGeometry(2, 2);
     this.debugMaterial = new MeshBasicMaterial({
       map: this.target,
     });
 
     this.debugMesh = new Mesh(this.debugGeometry, this.debugMaterial);
-    this.debugMesh.position.set(0, 0, -1);
+    this.debugMesh.position.set(0, 0, -5);
 
     camera.add(this.debugMesh);
   }
@@ -153,10 +155,8 @@ export default class FBO {
   // TODO: test...
   resize(width, height) {
     this.material.defines.RESOLUTION = `vec2(${width.toFixed(1)}, ${height.toFixed(1)})`;
-    console.log(this.material.defines.RESOLUTION);
     this.options.width = width;
     this.options.height = height;
-
 
     this.rt.forEach(rt => {
       rt.setSize(width, height);

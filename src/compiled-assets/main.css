@@ -92,7 +92,14 @@ https://utopia.basilico.dev/type/calculator?c=320,16,1.202,2560,22,1.27,10,2,144
   padding: 0;
 }
 
+p {
+  background: red;
+}
+
 body {
+  height: 100vh;
+  width: 100vw;
+  background: pink;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--body-color, #000);

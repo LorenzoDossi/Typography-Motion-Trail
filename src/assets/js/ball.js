@@ -14,6 +14,7 @@ export default class extends component(Object3D) {
   init() {
     this.geometry = new PlaneBufferGeometry(1, 1, 1, 1)
     this.material = new ShaderMaterial({
+      transparent: true,
       uniforms: {
         uTrail: { value: trail.fbo.target }
       },
@@ -37,8 +38,14 @@ export default class extends component(Object3D) {
 
        void main() {
 
-        vec3 color = texture2D(uTrail, vUv).rgb;
-        gl_FragColor = vec4(color, 1.);
+        vec4 color = texture2D(uTrail, vUv);
+        // color.rgb = smoothstep(0.5, 0.9, color.rgb);
+        // color.rgb = step(0.5, color.rgb);
+        // vec4 invertedColor = vec4(1.0 - color.r,1.0 -color.g,1.0 -color.b,1.);
+        // float grayscale = invertedColor.r * (1. / 3.) + invertedColor.g * (1. / 3.) + invertedColor.b * (1. / 3.);
+        float grayscale = 1.;
+
+        gl_FragColor = vec4(color.rgb, grayscale);
        }
       `
     })
@@ -48,7 +55,6 @@ export default class extends component(Object3D) {
   }
 
   onResize() {
-    this.longerSide = camera.unit.width > camera.unit.height ? camera.unit.width : camera.unit.height
-    this.mesh.scale.set(this.longerSide, this.longerSide, 1)
+    this.mesh.scale.set(camera.unit.width, camera.unit.height, 1)
   }
 }

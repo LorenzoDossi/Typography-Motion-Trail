@@ -12,7 +12,7 @@ class Camera extends component(PerspectiveCamera) {
   init() {
     this.position.set(0, 0, 10)
     this.lookAt(new Vector3(0, 0, 0))
-    this.initOrbitControl()
+    // this.initOrbitControl()
   }
 
   calculateUnitSize(distance = this.position.z) {

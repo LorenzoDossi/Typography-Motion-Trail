@@ -1,36 +1,41 @@
 import { component } from "bidello";
-import { Vector2 } from "three";
+import { gsap } from 'gsap'
+import { Vector2, LinearFilter } from "three";
 import FBO from "./fbo";
 
 const shader = `
-precision highp float;
+  precision highp float;
 
-uniform vec2 mousePos;
-uniform bool landscape;
+  uniform vec2 resolution;
+  uniform vec2 mousePos;
+  uniform sampler2D texture;
 
-float sdfCircle(vec2 p, float r) {
-  return length(p) - r;
-}
+  float circle(vec2 uv, vec2 disc_center, float disc_radius, float border_size) {
+    uv -= disc_center;
+    float dist = sqrt(dot(uv, uv));
+    return smoothstep(disc_radius+border_size, disc_radius-border_size, dist);
+  }
 
-void main() {
-  vec2 uv = gl_FragCoord.xy / RESOLUTION.xy;
-  // vec2 pixelCoords = vec2(0.);
-  vec2 pixelCoords = (uv - 0.5) * vec2(RESOLUTION);
+  float sdfCircle(vec2 p, float r) {
+    return length(p) - r;
+  }
 
-  // if (landscape) {
-  // } else {
-  //   pixelCoords = (uv - 0.5) * vec2(RESOLUTION);
-  // }
+  void main() {
+    vec2 uv = gl_FragCoord.xy / resolution.xy;
+    vec3 color = texture2D(texture, uv).rgb;
 
-  vec3 color = vec3(1.);
+    uv -= 0.5;
+    uv *= resolution;
 
-  float d = sdfCircle(pixelCoords - mousePos / 2. * vec2(RESOLUTION), 100.);
-  color = mix(vec3(1., 0., 0.), color, step(0., d));
-  // color = vec3(length(uv - 0.5));
+    color += vec3(circle(uv, mousePos * resolution + 0.5, 50., 50.));
+    color += vec3(sdfCircle(uv - mousePos * resolution, 100.));
+    // color += mix(color, vec3(0.0), .5);
+    color *= 0.6;
+    // color = clamp(color, vec3(0.0), vec3(1.0));
+    float grayscale = 1.;
 
-  gl_FragColor = vec4(vec3(color), 1.);
-}
-
+    gl_FragColor = vec4(vec3(color), grayscale);
+  }
 `
 
 class Trail extends component() {
@@ -42,25 +47,34 @@ class Trail extends component() {
       shader,
       uniforms: {
         landscape: { value: true },
-        mousePos: { value: new Vector2(0, 0) }
+        mousePos: { value: new Vector2(0, 0) },
+        resolution: { value: new Vector2(0, 0) }
+      },
+      rtOptions: {
+        minFilter: LinearFilter,
+        magFilter: LinearFilter,
       },
     })
+
+    this.pointerTarget = new Vector2()
   }
 
   onRaf() {
+    this.fbo.uniforms.mousePos.value.copy(this.pointerTarget)
     this.fbo.update()
   }
 
   onResize() {
-    let longerSide = innerWidth > innerHeight ? innerWidth : innerHeight
-    this.fbo.resize(longerSide, longerSide)
-    this.fbo.uniforms.landscape.value = innerWidth > innerHeight
+    this.fbo.resize(innerWidth, innerHeight)
+    this.fbo.uniforms.resolution.value.set(innerWidth, innerHeight)
   }
 
   onPointerMove({ pointer }) {
-    let pointerSide = innerWidth > innerHeight ? pointer.normalized.x : pointer.normalized.y
-
-    this.fbo.uniforms.mousePos.value.set(pointer.normalized.x, pointer.normalized.y)
+    gsap.to(this.pointerTarget, {
+      x: pointer.normalized.x / 2,
+      y: pointer.normalized.y / 2,
+      duration: 0.4
+    })
   }
 }
 
