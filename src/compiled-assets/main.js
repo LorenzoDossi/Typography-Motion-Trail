@@ -52,13 +52,15 @@ __webpack_require__.r(__webpack_exports__);
        void main() {
 
         vec4 color = texture2D(uTrail, vUv);
-        // color.rgb = smoothstep(0.5, 0.9, color.rgb);
+        color.rgb = smoothstep(0.9, 1., color.rgb);
         // color.rgb = step(0.5, color.rgb);
         // vec4 invertedColor = vec4(1.0 - color.r,1.0 -color.g,1.0 -color.b,1.);
-        // float grayscale = invertedColor.r * (1. / 3.) + invertedColor.g * (1. / 3.) + invertedColor.b * (1. / 3.);
-        float grayscale = 1.;
 
-        gl_FragColor = vec4(color.rgb, grayscale);
+        vec3 finalColor = vec3(1. - color.rgb);
+
+        finalColor += vec3(202. / 255., 242. / 255., 31. / 255.);
+
+        gl_FragColor = vec4(finalColor, color.r);
        }
       `
     });
@@ -722,19 +724,24 @@ const shader = `
 
   void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
-    vec3 color = texture2D(texture, uv).rgb;
+    vec3 oldColor = texture2D(texture, uv).rgb;
+    vec3 newColor = vec3(0.);
 
     uv -= 0.5;
     uv *= resolution;
 
-    color += vec3(circle(uv, mousePos * resolution + 0.5, 50., 50.));
-    color += vec3(sdfCircle(uv - mousePos * resolution, 100.));
-    // color += mix(color, vec3(0.0), .5);
-    color *= 0.6;
-    // color = clamp(color, vec3(0.0), vec3(1.0));
+    newColor += vec3(circle(uv, mousePos * resolution + 0.5, 35., 20.));
+    newColor *= 1.5;
+    // vec3 newColor = vec3(sdfCircle(uv - mousePos * resolution, 100.));
+    // newColor += mix(newColor, vec3(0.0), .5);
+    // newColor *= 0.4;
+    // newColor = clamp(newColor, vec3(0.0), vec3(1.0));
     float grayscale = 1.;
 
-    gl_FragColor = vec4(vec3(color), grayscale);
+    newColor += oldColor * 0.45;
+
+
+    gl_FragColor = vec4(vec3(newColor), grayscale);
   }
 `;
 
@@ -780,7 +787,8 @@ class Trail extends (0,bidello__WEBPACK_IMPORTED_MODULE_0__.component)() {
     gsap__WEBPACK_IMPORTED_MODULE_3__.gsap.to(this.pointerTarget, {
       x: pointer.normalized.x / 2,
       y: pointer.normalized.y / 2,
-      duration: 0.4
+      duration: 1.,
+      ease: "power3.out"
     });
   }
 

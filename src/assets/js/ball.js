@@ -39,13 +39,15 @@ export default class extends component(Object3D) {
        void main() {
 
         vec4 color = texture2D(uTrail, vUv);
-        // color.rgb = smoothstep(0.5, 0.9, color.rgb);
+        color.rgb = smoothstep(0.9, 1., color.rgb);
         // color.rgb = step(0.5, color.rgb);
         // vec4 invertedColor = vec4(1.0 - color.r,1.0 -color.g,1.0 -color.b,1.);
-        // float grayscale = invertedColor.r * (1. / 3.) + invertedColor.g * (1. / 3.) + invertedColor.b * (1. / 3.);
-        float grayscale = 1.;
 
-        gl_FragColor = vec4(color.rgb, grayscale);
+        vec3 finalColor = vec3(1. - color.rgb);
+
+        finalColor += vec3(202. / 255., 242. / 255., 31. / 255.);
+
+        gl_FragColor = vec4(finalColor, color.r);
        }
       `
     })

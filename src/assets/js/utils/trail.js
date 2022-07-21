@@ -22,19 +22,24 @@ const shader = `
 
   void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
-    vec3 color = texture2D(texture, uv).rgb;
+    vec3 oldColor = texture2D(texture, uv).rgb;
+    vec3 newColor = vec3(0.);
 
     uv -= 0.5;
     uv *= resolution;
 
-    color += vec3(circle(uv, mousePos * resolution + 0.5, 50., 50.));
-    color += vec3(sdfCircle(uv - mousePos * resolution, 100.));
-    // color += mix(color, vec3(0.0), .5);
-    color *= 0.6;
-    // color = clamp(color, vec3(0.0), vec3(1.0));
+    newColor += vec3(circle(uv, mousePos * resolution + 0.5, 35., 20.));
+    newColor *= 1.5;
+    // vec3 newColor = vec3(sdfCircle(uv - mousePos * resolution, 100.));
+    // newColor += mix(newColor, vec3(0.0), .5);
+    // newColor *= 0.4;
+    // newColor = clamp(newColor, vec3(0.0), vec3(1.0));
     float grayscale = 1.;
 
-    gl_FragColor = vec4(vec3(color), grayscale);
+    newColor += oldColor * 0.45;
+
+
+    gl_FragColor = vec4(vec3(newColor), grayscale);
   }
 `
 
@@ -73,7 +78,8 @@ class Trail extends component() {
     gsap.to(this.pointerTarget, {
       x: pointer.normalized.x / 2,
       y: pointer.normalized.y / 2,
-      duration: 0.4
+      duration: 1.,
+      ease: "power3.out"
     })
   }
 }
